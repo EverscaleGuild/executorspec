@@ -1,0 +1,7 @@
+#+TITLE: Transaction Executor Functional Specification
+#+SUBTITLE: Evgeniy Shishkin <evgeniy.shishkin@gmail.com>
+#+author: Evgeniy Shishkin
+#+email: evgeniy.shishkin@gmail.com
+#+options: toc:4 H:5 num:4
+#+OPTIONS: ^:nil
+#+LANGUAGE: en

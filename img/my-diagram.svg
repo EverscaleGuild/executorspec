@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="181px" preserveAspectRatio="none" style="width:663px;height:181px;background:#FFFFFF;" version="1.1" viewBox="0 0 663 181" width="663px" zoomAndPan="magnify"><defs><filter height="300%" id="f12ognkj6a7chj" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="153" x="248.5" y="16.708">Account Lifecycle</text><ellipse cx="16" cy="147.519" fill="#000000" filter="url(#f12ognkj6a7chj)" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><rect fill="#FEFECE" filter="url(#f12ognkj6a7chj)" height="40" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="50" x="122" y="127.519"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="39" x="127.5" y="152.3657">Uninit</text><rect fill="#FEFECE" filter="url(#f12ognkj6a7chj)" height="40" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="51" x="289" y="40.519"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="41" x="294" y="65.3657">Active</text><rect fill="#FEFECE" filter="url(#f12ognkj6a7chj)" height="40" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="58" x="463" y="98.519"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="48" x="468" y="123.3657">Frozen</text><ellipse cx="641" cy="118.519" filter="url(#f12ognkj6a7chj)" rx="10" ry="10" style="stroke:#000000;stroke-width:1.0;fill:none;"/><ellipse cx="641.5" cy="119.019" fill="#000000" rx="6" ry="6" style="stroke:none;stroke-width:1.0;"/><!--MD5=[300211392e9aabe72fd8c19c60fb745b]
+link *start to Uninit--><path d="M26.28,147.519 C44.93,147.519 87.68,147.519 116.7,147.519 " fill="none" id="*start-to-Uninit" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="121.96,147.519,112.96,143.519,116.96,147.519,112.96,151.519,121.96,147.519" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="31" x="58.5" y="128.5859">send</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="34" x="57" y="143.7188">value</text><!--MD5=[631d167be21f7cce7ef96614f8e1fa37]
+link Uninit to Active--><path d="M172.07,134.869 C201.8,119.239 252.37,92.659 284.29,75.869 " fill="none" id="Uninit-to-Active" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="288.87,73.469,279.0409,74.0923,284.4386,75.7848,282.7461,81.1825,288.87,73.469" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="51" x="203" y="90.5859">initialize</text><!--MD5=[b6cea4af27876653d6d67ffe374f6b0b]
+link Uninit to Frozen--><path d="M172.12,145.479 C232.16,140.399 388.44,127.189 457.43,121.359 " fill="none" id="Uninit-to-Frozen" style="stroke:#DD00AA;stroke-width:1.0;"/><polygon fill="#DD00AA" points="462.64,120.919,453.3297,117.7068,457.6585,121.3485,454.0168,125.6773,462.64,120.919" style="stroke:#DD00AA;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="24" x="302.5" y="111.5859">due</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="57" x="286" y="126.7188">payment</text><!--MD5=[03a3bd8385845c47c16a686663568249]
+link Frozen to Uninit--><path d="M462.99,126.799 C453.48,129.589 442.78,132.709 433,135.519 C393.51,146.849 384.7,154.909 344,160.519 C318.02,164.099 311.19,161.759 285,160.519 C247.71,158.749 204.89,154.299 177.19,151.099 " fill="none" id="Frozen-to-Uninit" style="stroke:#DD00AA;stroke-width:1.0;"/><polygon fill="#DD00AA" points="172.2,150.519,180.6827,155.5234,177.1671,151.0916,181.5989,147.576,172.2,150.519" style="stroke:#DD00AA;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="56" x="286.5" y="156.5859">unfreeze</text><!--MD5=[cf10213fff88d73eaad329e62384e7da]
+link Active to Frozen--><path d="M340.33,58.759 C364.81,57.959 402.83,59.219 433,71.519 C446.03,76.829 458.44,86.099 468.42,94.999 " fill="none" id="Active-to-Frozen" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="472.25,98.519,468.309,89.4931,468.5607,95.1443,462.9094,95.396,472.25,98.519" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="24" x="391.5" y="40.5859">due</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="57" x="375" y="55.7188">payment</text><!--MD5=[a9172b1635ea7f98efccaca92c309a0a]
+link Frozen to Active--><path d="M462.79,116.129 C438.59,113.399 403.11,107.769 374,96.519 C363.87,92.599 353.54,86.919 344.44,81.209 " fill="none" id="Frozen-to-Active" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="340.07,78.419,345.4903,86.6422,344.2801,81.1163,349.8059,79.9061,340.07,78.419" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="56" x="375.5" y="92.5859">unfreeze</text><!--MD5=[0c04496f5e9e0a4b071facadfd78148c]
+link Frozen to *end--><path d="M521.34,118.519 C552.55,118.519 601.48,118.519 625.59,118.519 " fill="none" id="Frozen-to-*end" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="630.89,118.519,621.89,114.519,625.89,118.519,621.89,122.519,630.89,118.519" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="48" x="552" y="114.5859">deleted</text><!--MD5=[67b0885479160b6bd90cb5747e5a8210]
+@startuml
+hide empty description
+left to right direction
+title Account Lifecycle
+[*] - -> Uninit : send\nvalue
+' Uninit : Initial state of the account
+Uninit - -> Active : initialize
+Uninit -[#DD00AA]-> Frozen : due\npayment
+'  Active : Normal message processing
+Active -[#blue]-> Frozen : due\npayment
+'  Frozen : Unfreeze message only
+Frozen -[#blue]-> Active : unfreeze
+Frozen -[#DD00AA]-> Uninit : unfreeze
+Frozen - -> [*] : deleted
+@enduml
+
+@startuml
+hide empty description
+left to right direction
+title Account Lifecycle
+[*] - -> Uninit : send\nvalue
+Uninit - -> Active : initialize
+Uninit -[#DD00AA]-> Frozen : due\npayment
+Active -[#blue]-> Frozen : due\npayment
+Frozen -[#blue]-> Active : unfreeze
+Frozen -[#DD00AA]-> Uninit : unfreeze
+Frozen - -> [*] : deleted
+@enduml
+
+PlantUML version 1.2022.0(Tue Jan 11 19:16:42 MSK 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
