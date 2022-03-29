@@ -1,6 +1,6 @@
 #+INCLUDE: ./papersetup.org
-#+HTML_HEAD: <link rel="stylesheet" href="../css/latexcss.css">
-
+#+HTML_HEAD: <link rel="stylesheet" href="./css/latexcss.css">
+#+HTML_HEAD: <link rel="shortcut icon" type="image/x-icon" href="./img/ever.png" />
 # Reminder:
 # Press C-c C-e h h  to export the file into HMTL
 
@@ -134,7 +134,7 @@
    #+CAPTION: EverScale Blockchain High-Level Architecture. The following
    #+CAPTION: objects depicted here: external message m1,internal messages m2 and m2', event m3.
    #+NAME:   fig:general
-   [[../img/general.svg]]
+   [[./img/general.svg]]
 
 ** Platform Implementation
 
@@ -182,7 +182,7 @@
 
    #+CAPTION: Transaction Executor
    #+NAME:   fig:trans_exec
-   [[../img/executor.svg]]
+   [[./img/executor.svg]]
 
    We now describe each input/output entity in detail, together with the
    logic of the computation.
@@ -203,7 +203,7 @@
    (id -1) and Workchain (id 0).
    \\
    \\
-   | [[file:../img/excl2.png]] | Currently, the creation of new workchains is not supported  |
+   | [[file:./img/excl2.png]]  | Currently, the creation of new workchains is not supported  |
 
 ** Multicurrency payments
 
@@ -237,7 +237,7 @@
    #+CAPTION: EverScale Account
    #+NAME:   fig:account
    #+ATTR_HTML: :style width:40%
-   [[../img/account.svg]]
+   [[./img/account.svg]]
 
    Account could be created either by  a user, or by a smart-contract.
    It is being  done by sending a message carrying  special payload to
@@ -250,7 +250,7 @@
 
    <<account_lifecycle>>
    #+CAPTION: Account Lifecycle
-   #+begin_src plantuml :file ../img/my-diagram.svg
+   #+begin_src plantuml :file ./img/my-diagram.svg
       hide empty description
       left to right direction
       title Account Lifecycle
@@ -350,7 +350,7 @@
     \\
     \\
     #+OPTIONS: ^:{}
-    | [[file:../img/excl2.png]] | Anycast-addresses are planned to be removed shortly. |
+    | [[file:./img/excl2.png]]  | Anycast-addresses are planned to be removed shortly. |
 
 *** Account Storage
     <<storage_info>>
@@ -766,7 +766,7 @@
 
    #+CAPTION: Executor Message Processing General Scheme
    #+NAME:   fig:phases
-   [[../img/phases.svg]]
+   [[./img/phases.svg]]
 
 
 *** Executor Types
@@ -1058,7 +1058,7 @@
     Upon executing  message for  one of  those special  contracts, the
     Executor applies all those conditions.
 
-    | [[file:../img/excl2.png]] | In this document, we mainly focus on ordinary accounts, leaving the special accounts processing details aside. |
+    | [[file:./img/excl2.png]]  | In this document, we mainly focus on ordinary accounts, leaving the special accounts processing details aside. |
 
 *** GlobalCapabilities Options
     There  are  several  flags   defining  different  aspects  of  the
@@ -2119,7 +2119,7 @@
     3. The generated actions list is ill-formed
 
     \\
-    | [[file:../img/excl2.png]] | The  compute  phase  may  be considered   successful  even   if  the   computation  thrown   an exception. This is quite unintuitive, yet very important fact. |
+    | [[file:./img/excl2.png]]  | The  compute  phase  may  be considered   successful  even   if  the   computation  thrown   an exception. This is quite unintuitive, yet very important fact. |
     | <30>                      | <30>                                                                                                                                                           |
 
 *** Compute Phase Exit Code
