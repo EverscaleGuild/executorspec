@@ -285,6 +285,7 @@
 
    The account structure is defined as follows:
 
+   <<account>>
    #+begin_src rust
      struct AccountStuff {
          addr: MsgAddressInt,
@@ -292,26 +293,6 @@
          storage: AccountStorage,
      }
    #+end_src
-
-#+BEGIN_COMMENT
-   pub struct Account {
-       stuff: Option<AccountStuff>
-   }
-
-   Here, /Option<T>/ denotes the algebraic datatype with constructors:
-   /None/ and /Value<T>/.
-
-   For an active account, /stuff/ field is initialized
-   with the value of type /AccountStuff/.
-
-   If the /stuff/ field is set to  /None/, it is said that the account
-   does not  exist. Please note  that this 'non-existing' status  is a
-   mere optimization.  From user  standpoint, non-existing  account is
-   indistingushable from uninitialized account. We will not distinguish
-   those states either.
-
-   #+COMMENT +ATTR_HTML: :border 2 :rules all :frame border
-#+END_COMMENT
 
    #+CAPTION: AccountStuff structure fields
    |--------------+--------------------------------|
@@ -372,6 +353,8 @@
     | [[file:../img/excl2.png]] | Anycast-addresses are planned to be removed shortly. |
 
 *** Account Storage
+    <<storage_info>>
+    <<storage_used>>
 
     Any  account in  the  EverScale blockchain  is  being charged  for
     occupying space, on a regular basis. The fee depends on the size of
@@ -429,6 +412,7 @@
     - Smart-contract storage called StateInit
 
 **** Account Storage structure
+     <<account_storage>>
 
     The most outer record is the account storage. It contains the account balance
     and the account state. The account state /may/ contain the smart-contract code
@@ -1012,14 +996,14 @@
     It resemble how it is implemented in the node.
 
     *_Input:_*
-    - storage_info - the account storage info struct, has type AccStorageInfo.
+    - storage_info - the account storage info struct, has type [[storage_info][StorageInfo]].
     - is_masterchain - is the account inhabits Masterchain or not, has type Bool
-    - config - current blockchain configuration, has type BlockchainConfig
+    - config - current blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
     - now - current time, measured in Unix Epoch, has type UInt
 
     *_Output_*:
     - fee - the fee amount to be deducted from the account balance, has type UInt
-    - storage_info - updated account storage info, has type AccStorageInfo
+    - storage_info - updated account storage info, has type [[storage_info][StorageInfo]]
 
     #+begin_src python
       def calc_storage_fee(storage_info, is_masterchain, config, now):
@@ -1492,6 +1476,7 @@
    | ChangeLibrary   | Update code library                                              |
 
 *** Action SendMsg
+    <<sendmsg_action>>
 
     $SendMsg(mode,out\_msg)$ action sends a message to an account. The message $out\_msg$ contains
     the destination address as well as the payload to be delivered.
@@ -1552,16 +1537,16 @@
   considered.
 
   *_Input:_*
-  - /in_msg/ - incoming message, has type /Message/ [[messages]]
-  - /acc/ - account, has type /Account/ [[accounts]]
-  - /params/ - executor parameters, has type /Parameters/ [[parameters]]
-  - /config/ - blockchain configuration, has type /BlockchainConfig/ [[blockchain_config]]
+  - /in_msg/ - incoming message, has type [[messages][Message]]
+  - /acc/ - account, has type [[account][Account]]
+  - /params/ - executor parameters, has type [[parameters][Parameters]]
+  - /config/ - blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
 
   *_Output:_*
 
   On success, returns Ok(acc1, trans), such that:
-    - /acc1/ - updated account, has type /Account/
-    - /trans/ - transaction, has type /Transaction/
+    - /acc1/ - updated account, has type [[account][Account]]
+    - /trans/ - transaction, has type [[transaction][Transaction]]
 
   On error, returns error of the type /TransactionExecutor.TrExecutorError/
 
@@ -1589,22 +1574,22 @@
         return ExecutorError.TrExecutorError()
   #+end_src
 
-** /Internal Message/ Processing Algorithm
+** Internal Message Processing Algorithm
    <<internal_message_processing>>
 
    At this point, the message is known to be internal. Execute it with the given account.
 
   *_Input:_*
-    - /in_msg/ - incoming message, has type /Message/ [[messages]]
-    - /acc/ - account, has type /Account/ [[accounts]]
-    - /params/ - executor parameters, has type /Parameters/ [[parameters]]
-    - /config/ - blockchain configuration, has type /BlockchainConfig/ [[blockchain_config]]
+    - /in_msg/ - incoming message, has type  [[messages][Message]]
+    - /acc/ - account, has type [[accounts][Account]]
+    - /params/ - executor parameters, has type [[parameters][Parameters]]
+    - /config/ - blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
 
   *_Output:_*
 
   On success, returns Ok(acc1, trans), such that:
-   - /acc1/ - updated account, has type /Account/
-   - /trans/ - transaction, has type /Transaction/
+   - /acc1/ - updated account, has type [[accounts][Account]]
+   - /trans/ - transaction, has type [[transaction][Transaction]]
   On error, returns error of the type /TransactionExecutor.TrExecutorError/
 
   *_Modifies_:*
@@ -1748,22 +1733,22 @@
        return Ok(lt_next)
  #+end_src
 
-** /External Message/ Processing Algorithm
+** External Message Processing Algorithm
    <<external_message_processing>>
 
    The execution of external message on the given account.
 
   *_Input:_*
-    - /in_msg/ - incoming message, has type /Message/ [[messages]]
-    - /acc/ - account, has type /Account/ [[accounts]]
-    - /params/ - executor parameters, has type /Parameters/ [[parameters]]
-    - /config/ - blockchain configuration, has type /BlockchainConfig/ [[blockchain_config]]
+    - /in_msg/ - incoming message, has type [[messages][Message]]
+    - /acc/ - account, has type [[accounts][Account]]
+    - /params/ - executor parameters, has type [[parameters][Parameters]]
+    - /config/ - blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
 
   *_Output:_*
 
   On success, returns Ok(acc1, trans), such that:
-    - /acc1/ - updated account, has type /Account/
-    - /trans/ - transaction, has type /Transaction/
+    - /acc1/ - updated account, has type [[account][Account]]
+    - /trans/ - transaction, has type [[transaction][Transaction]]
   On error, returns error of the type /TransactionExecutor.TrExecutorError/
 
   *Modifies:*
@@ -1867,8 +1852,8 @@
    no coins attached.
 
    *_Input:_*
-   - /account/ - account that the message is executed on, has type /Account/
-   - /tr/ - forming transaction, has type /Transaction/
+   - /account/ - account that the message is executed on, [[account][Account]]
+   - /tr/ - forming transaction, has type [[transaction][Transaction]]
    - /msg_balance/ - message balance, has type /Grams/
    - /acc_balance/ - current balance of the account, has type /Grams/
 
@@ -1908,8 +1893,8 @@
    is calculated using the algorithm /calc_storage_fee/ [[calc_storage_fee]]
 
    *_Input:_*
-   - /account/ - account that the message is executed on, has type /Account/
-   - /tr/ - forming transaction, has type /Transaction/
+   - /account/ - account that the message is executed on, has type [[account][Account]]
+   - /tr/ - forming transaction, has type [[transaction][Transaction]]
    - /msg_balance/ - message balance, has type /Grams/
    - /acc_balance/ - current balance of the account, has type /Grams/
 
@@ -1987,8 +1972,8 @@
    the next phase.
 
    *_Input:_*
-   - /msg/ - message, has type /Message/
-   - /account/ - account, has type /Account/
+   - /msg/ - message, has type [[messages][Message]]
+   - /account/ - account, has type [[account][Account]]
    - /acc_balance/ - current account balance, has type /Grams/
    - /msg_balance/ - message balance,has type /Grams/
    - /state_libs/ - code libraries, has type /Blob/ (not relevant; omitted)
@@ -2123,14 +2108,15 @@
     /Compute Phase/ to  succeed.  To do that,
     /we  specify the opposite condition/, i.e. when  it fails.
     In all other  scenarios the  phase is
-    considered successful. The success status is important, because it
-    decides if the action phase will be executed afterwards.
+    considered successful.
+
+    The success status is important, because it
+    decides if the action phase has to be executed afterwards.
 
     For the phase to fail, one of the following conditions must hold:
-    1. The value returned is not equal to /Ok(TrComputePhase.Vm(vm_phase), _, _)/
-    2. The smart-contract data is not committed after the execution [fn:5]
-    3. The new smart-contract data is ill-formed
-    4. The generated actions list is ill-formed
+    1. The smart-contract data is not committed after the execution [fn:5]
+    2. The new smart-contract data is ill-formed
+    3. The generated actions list is ill-formed
 
     \\
     | [[file:../img/excl2.png]] | The  compute  phase  may  be considered   successful  even   if  the   computation  thrown   an exception. This is quite unintuitive, yet very important fact. |
@@ -2163,7 +2149,7 @@
 
 
     *_Input:_*
-     - gas_prices - a structure with actual gas prices, has type /GasLimitsPrice/ [[gas_prices]]
+     - gas_prices - a structure with actual gas prices, has type  [[gas_prices][GasLimitsPrice]]
      - gas_used - amount of gas units consumed by the computation, has type Uint
 
     *_Output:_*
@@ -2187,9 +2173,9 @@
    by given account record, the balance and the message.
 
    *_Input_:*
-   - /account/ - account structure, has type Account
+   - /account/ - account structure, has type [[account][Account]]
    - /acc_balace/ - current account balance, has type Uint
-   - /in_msg/ - message being executed, has type Message
+   - /in_msg/ - message being executed, has type [[messages][Message]]
 
    *_Output_:*
 
@@ -2730,8 +2716,136 @@
          return Ok(TrBouncePhase.ok(storage, fwd_mine_fees, fwd_fees), bounce_msg)
    #+end_src
 
+* Functional Properties
+
+  In this  section, we  define the  main risks  of malfunction  in the
+  module, and define several higher-level properties that should
+  hold for the module to mitigate those risks.
+
+** Risks
+
+   We define a risk as a hazard event causing a significant loss for the end user.
+   We distinguish the following types of risks.
+
+*** Financial Risks
+
+    The Executor is the only place in the Node that is responsible for
+    changing  the   account  balance.  Hence,  any   errors  in  related
+    operations  lead to  tokens loss  for the  user.  We  identify the
+    following financial risks for the module:
+
+    1. Incorrect storage, delivery or gas fees calculation logic
+    2. Incorrect message value processing logic
+    3. Incorrect /SendMsg/, /ReserveCoins/ tokens processing logic
+
+*** Behavioral Risks
+
+    EverScale blockchain praises  the distributed programming paradigm
+    in  application development.  It means  that instead  of producing
+    huge smart-contract  monoliths, it is encouraged  to separate the
+    system into many manageable smart-contracts  that communicate with
+    each other by means of message passing.
+
+    The message passing scheme used in a system induces some protocol.
+    If message passing breaks in an unexpected way, the whole protocol
+    may stall, potentially  leading to global system  deadlocks.
+
+    It is of  utter importance to guarantee that  all produced correct
+    messages  will   be  eventually   delivered  to   the  destination
+    account. The delivery  process is complicated and  rely on several
+    node components. Here,  we identify risks related  to the Executor
+    part of it:
+    \\
+    \\
+    - Successful SendMsg action does not lead to creation of a corresponding
+       message
+    - Generated messages do not occur in the Out Message queue
+    - Message delivery order gets broken
+    - A bounce message does not get generated as expected
+
+** Assumptions
+
+    All the properties formulated with the following assumptions in mind:
+
+    - We consider only /ordinary/ accounts, not system (special) accounts.
+      For the latter, the properties might look different.
+
+** System Properties
+
+   System properties are high-level general statements on the system behavior
+   that the Executor should obey to. A subset of those statements related to
+   mitigating the main risks, identified in the previous section.
+
+
+*** Fees
+
+    - *FEE1*. Gas fees for the computation equal the amount calculated using
+      the algorithm [[calc_gas_fee]].
+
+    - *FEE2*. Storage fees for an account equal the amount calculated using
+      the algorithm [[calc_storage_fee]].
+
+    - *FEE3*. Forwarding fees are calculated according to the *delivery_fees*
+      algorithm.
+
+    - *FEE4*. During the message execution process, all type of fees get deducted
+      only once for an account.
+
+*** Message Processing
+
+    - *MSG1*. The message coins get credited to the account balance before
+      executing a smart-contract logic.
+
+    - *MSG2*. Messages delivery order between the current account $a_1$ and some other account $a_2$
+      does not depend on messages sent from $a_1$ to some other account $a_3$, when $a_2 \neq a_3$.
+
+*** Credit Phase Processing
+    - *CRD1*. If the inbound message is external, the credit phase does not get executed.
+
+    - *CRD2*. If the inbound message is internal, the account's balance get credited with the
+      message value minus the account debt, if any.
+
+*** Storage Phase Processing
+    - *STR1*. If there is not enough funds to cover the storage phase fee on the account's balance,
+      and if the account is in the Active status, then the account gets a debt storing in the
+      /due_payment/ field of the account. If the debt value exceeds the /freeze_due_limit/ value,
+      the account is switched into a frozen status. If the debt exceeds the /delete_due_limit/ value,
+      the account gets deleted.
+
+*** Compute Phase Processing
+    - *CMP1*. If the [[compute_phase_success][Compute Phase fails]], the execution of a message is aborted.
+      The bounce message is not created in this case.
+
+    - *CMP2*. After the Compute Phase, the account's balance gets decreased exactly on the amount
+      of consumed gas.
+
+*** Action Phase Processing
+
+    - *ACT1*. Each successful [[sendmsg_action][SendMsg]] action leads to creation of a message.
+
+    - *ACT2*. Successfully created message is added into the out queue exactly once.
+
+    - *ACT3*. If the action phase fails and the incoming message has the bounce flag set, then
+      a single bounce message is generated and put into the out queue.
+
+
+*** Bounce Phase Processing
+    - *BNC1*. The bounce message is generated only if and only if all of the following conditions hold:
+      1) The incoming message is an internal message
+      2) The incoming message has the bounce flag set
+      3) During the message processing, the action phase was executed, but failed
+      4) After the failed action phase, there is enough funds left on the incoming message
+         balance to cover the bounce message processing [fn:6]
+
+    - *BNC2*. A bounce message attach all the original message value minus the storage, gas
+      and delivery fees.
+
 
 * Footnotes
+
+[fn:6] Note that bounce message delivery fee is conducted from the message balance, not
+the account balance.
+
 [fn:1] In the original TON, message dichotomy is different: they distinguish
     4 types of messages: (inbound + outbound) * (internal + external). We
     find this dichotomy a bit tedious to use in practice.
@@ -2742,6 +2856,7 @@ versions.
 
 [fn:3] For example, by sending GraphQL requests to the DApp-server.
 
-[fn:4] Well, at least, until the part of the chain residing the transaction gets cut-off to reduce the disk space consumption.
+[fn:4] Well, at least, until the part of the chain residing the transaction
+gets cut-off to reduce the disk space consumption.
 
 [fn:5] See the definition of COMMIT TVM instruction.
