@@ -435,6 +435,8 @@
     | state         | Current account state                                     |
 
 **** Account State
+     <<account_state>>
+
      The account state defines the mode of operation for the account, during
      the message being executed for that account. The Executor logic vary
      greatly depending of what is the current account state is.
@@ -610,9 +612,11 @@
    #+end_src
 
    The source address for an external message is always set to /AddrNone/.
+
    The second variant /AddrExtern/ is not supported currently.
 
-   The field /import_fee/ defines the commission for .. ?
+   | <15>                     | <15>                                                                                                                                                                                                                               |
+   | [[file:./img/excl2.png]] | The field /import_fee/ should have been the value paid to the validator for processing an external message. But in the current node, this field is not used. Hence, the fee is not paid. We reported this issue to the developers.  |
 
 
 *** Events
@@ -717,23 +721,24 @@
    #+end_src
 
    #+CAPTION: Transaction structure fields
-   |-----------------+---------------------------------------------------|
-   | Field           | Description                                       |
-   |-----------------+---------------------------------------------------|
-   | account_addr    | Account identifier                                |
-   | lt              | Transaction creation logical time                 |
-   | prev_trans_hash | Previous transaction hash value                   |
-   | prev_trans_lt   | Previous transaction logical time                 |
-   | now             | Current time in Unix Epoch                        |
-   | outmsg_cnt      | Number of generated outbound messages             |
-   | orig_status     | Status of the account upon receiving the message  |
-   | end_status      | Status of the account after executing the message |
-   | in_msg          | Processed message                                 |
-   | out_msgs        | Set of generated outbound messages                |
-   | total_fees      | Total fee amount for all the processing           |
-   | state_update    | Hash footprint of the account state change        |
-   | description     | Transaction Descriptor                            |
-   |-----------------+---------------------------------------------------|
+   |-----------------+--------------------------------------------------------------|
+   | Field           | Description                                                  |
+   |-----------------+--------------------------------------------------------------|
+   | account_addr    | Account identifier                                           |
+   | lt              | Transaction creation logical time                            |
+   | prev_trans_hash | Previous transaction hash value                              |
+   | prev_trans_lt   | Previous transaction logical time                            |
+   | now             | Current time in Unix Epoch                                   |
+   | outmsg_cnt      | Number of generated outbound messages                        |
+   | orig_status     | [[account_state][Account state]] upon receiving the message  |
+   | end_status      | [[account_state][Account state]] after executing the message |
+   | in_msg          | Processed message                                            |
+   | out_msgs        | Set of generated outbound messages                           |
+   | total_fees      | Total fee amount for all the processing                      |
+   | state_update    | Hash footprint of the account state change                   |
+   | description     | [[transaction_descriptor][Transaction Descriptor]]           |
+   |                 |                                                              |
+   |-----------------+--------------------------------------------------------------|
 
 ** Executor
 
@@ -894,8 +899,9 @@
 
 
 *** Message Passing Fee
+    <<message_passing_fees>>
 
-    Validators do  the work  on message  passing. To  compensate their
+    Validators do  the work  of message  delivery. To  compensate their
     efforts,  account  pays  for  the message  passing.   The  message
     passing  fee depends  on BlockchainConfig  parameters /fwd_prices/
     and  the message  size.  The  /fwd_prices_mc/ and  /fwd_prices_wc/
@@ -1138,6 +1144,7 @@
     processing.
 
 *** Transaction Description Object
+    <<transaction_descriptor>>
 
     During the incoming message processing, Executor constructs the report
     about the processing. This report has a special name - Transaction Description,
@@ -1159,21 +1166,23 @@
     This description object may be used  for fast checkups on the main
     system invariants, critical for its safety.
 
-    |--------------+------------------------------------------------|
-    | Field        | Description                                    |
-    |--------------+------------------------------------------------|
-    | storage_ph   | Storage phase descriptor                       |
-    | credit_ph    | Credit phase descriptor                        |
-    | compute_ph   | Compute phase descriptor                       |
-    | action       | Action phase descriptor                        |
-    | bounce_ph    | Bounce phase descriptor                        |
-    | credit_first | Credit phase was executed before Storage phase |
-    | aborted      | Is Action phase failed                         |
-    | destroyed    | Is account /deleted/ after message execution   |
+    |--------------+--------------------------------------------------------|
+    | Field        | Description                                            |
+    |--------------+--------------------------------------------------------|
+    | storage_ph   | [[storage_phase_descriptor][Storage phase descriptor]] |
+    | credit_ph    | [[credit_phase_descriptor][Credit phase descriptor]]   |
+    | compute_ph   | [[compute_phase_descriptor][Compute phase descriptor]] |
+    | action       | [[action_phase_descriptor][Action phase descriptor]]   |
+    | bounce_ph    | [[bounce_phase_descriptor][Bounce phase descriptor]]   |
+    | credit_first | Credit phase was executed before Storage phase         |
+    | aborted      | Is Action phase failed                                 |
+    | destroyed    | Is account /deleted/ after message execution           |
 
     We now describe each descriptor separately.
 
 **** Storage Phase Descriptor
+     <<storage_phase_descriptor>>
+
     #+begin_src rust
       pub struct TrStoragePhase {
           pub storage_fees_collected: Grams,
@@ -1201,6 +1210,7 @@
     #+end_src
 
 **** Credit Phase Descriptor
+     <<credit_phase_descriptor>>
 
     The Credit Phase descriptor is defined as follows:
 
@@ -1225,6 +1235,8 @@
 
 
 **** Compute Phase Descriptor
+     <<compute_phase_descriptor>>
+
     Compute Phase descriptor is defined with the following enumeration:
 
     #+begin_src rust
@@ -1384,6 +1396,7 @@
 
 
 **** Bounce Phase Transaction Descriptor
+     <<bounce_phase_descriptor>>
 
     Bounce Phase descriptor is defined with the following enumeration:
 
@@ -1423,8 +1436,10 @@
     #+end_src
 
     - /msg_size/ not used.
-    - /msg_fees/ the fee for *?*
-    - /fwd_fees/ the fee for *?*
+
+    - /fwd_fees/ is a full forwarding fee for the bounce message.
+
+    - /msg_fees/ is a part of /fwd_fees/ that goes to the validator processing the message.
 
 ** Actions
    <<actions>>
@@ -1544,7 +1559,7 @@
 
   *_Output:_*
 
-  On success, returns Ok(acc1, trans), such that:
+  On success, returns /Ok(acc1, trans)/, such that:
     - /acc1/ - updated account, has type [[account][Account]]
     - /trans/ - transaction, has type [[transaction][Transaction]]
 
@@ -1788,7 +1803,7 @@
       # Why do it here, not at the end of the function?
       account.last_paid = params.block_unixtime
 
-      # Parameters to be passed into TVM?
+      # Parameters to be passed into TVM
       smci = build_contract_info(acc_balance, account.address(),
                                  params.block_lt, lt, params.seed_block)
       # First element is the bottom of the stack
@@ -1845,7 +1860,7 @@
    #+end_src
 
 ** Credit Phase
-<<credit_phase>>
+   <<credit_phase>>
 
    At this phase, coins from the message balance goes to the account balance.
    This phase is executed only for internal messages. External messages have
@@ -1887,7 +1902,7 @@
    #+end_src
 
 ** Storage Phase
-<<storage_phase>>
+   <<storage_phase>>
 
    This phase withholds the storage fee from the account balance. The fee amount
    is calculated using the algorithm /calc_storage_fee/ [[calc_storage_fee]]
@@ -1967,7 +1982,8 @@
    #+end_src
 
 ** Compute Phase
-<<compute_phase>>
+   <<compute_phase>>
+
    Execute the account smart-contract, update the state, gather generated actions to pass on
    the next phase.
 
@@ -2785,8 +2801,7 @@
     - *FEE2*. Storage fees for an account equal the amount calculated using
       the algorithm [[calc_storage_fee]].
 
-    - *FEE3*. Forwarding fees are calculated according to the *delivery_fees*
-      algorithm.
+    - *FEE3*. Forwarding fees are calculated according to the algorithm [[message_passing_fees]] .
 
     - *FEE4*. During the message execution process, all type of fees get deducted
       only once for an account.
