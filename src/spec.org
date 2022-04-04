@@ -67,7 +67,7 @@
    - For  complex datatypes (objects), the assignment operator copies a reference to the object
      instead of  creating a new  instance.
 
-   - The call $obj.clone()$ does the deep copy of the object
+   - The call $obj.clone()$ creates a deep copy of the object $obj$
 
    - The  input arguments  are passed  by reference,  so, mutating  them
      within the function would mutate them for the caller also.
@@ -90,8 +90,8 @@
      /TransactionExecutor.TrExecutorError()/ denotes the object /TrExecutorError/
      residing in the namespace /TransactionExecutor/
 
-   - We use *is* operator to do type test. For example, to test that message is internal, we
-     use the following construct:
+   - We use *is*  operator to do type test. For  example, to test that
+     message is internal, we use the following construct:
      #+begin_src python
      if in_msg.header is IntMsgInfo:
         return ExecuteInternalMessage(in_msg, ...)
@@ -117,19 +117,20 @@
 
 * EverScale Platform Architecture
 
-  The main actors of the EverScale blockchain are smart-contracts.
-  Smart-contracts are programs that operate user valuable assets
-  on their behalf. Valuable assets are usually cryptocurrency tokens
-  or some digital goods, like NFTs.
+  The  main actors  of the  EverScale blockchain  are smart-contracts.
+  Smart-contracts are  programs that  operate user valuable  assets on
+  their behalf.  Valuable assets are usually  cryptocurrency tokens or
+  some digital goods, like NFTs.
 
-  Smart-contract execution is triggered by a message sent from some
-  other party. If the message was delivered from the outside world (i.e.
-  from the user program), it is said to be /external/. Otherwise, the message
-  is considered /internal/.
+  Smart-contract execution  is triggered by  a message sent  from some
+  other party.  If the  message was delivered  from the  outside world
+  (i.e.    from    the   user   program),    it   is   said    to   be
+  /external/. Otherwise, the message is considered /internal/.
 
-  Smart-contracts may also generate log records called /events/.
-  Those records are used as information signals for an external observers.
-  They foster communication between smart-contracts and off-chain programs.
+  Smart-contracts  may  also  generate log  records  called  /events/.
+  Those  records  are used  as  information  signals for  an  external
+  observers.   They foster  communication between  smart-contracts and
+  off-chain programs.
 
    #+CAPTION: EverScale Blockchain High-Level Architecture. The following
    #+CAPTION: objects depicted here: external message m1,internal messages m2 and m2', event m3.
@@ -206,18 +207,21 @@
    | [[file:./img/excl2.png]]  | Currently, the creation of new workchains is not supported  |
 
 ** Multicurrency payments
+   <<multicurrency>>
+   
+   The native  coin of EverScale  blockchain is called  /Ever/. However,
+   EverScale has an ablility to work with other types of coins.  While
+   system payments like  gas and storage fees are made  only in Evers,
+   the   other   value   transfers   may  contain   coins   of   other
+   currencies.  This contrasts  with most  of other  blockchains where
+   there is only a single  native cryptocurrency, and other currencies
+   may be made only using artificial token smart-contracts.
 
-   EverScale has an inherent support  for multiple coins. While system
-   payments like  gas and storage  fees are  made only in  Evers, the
-   other value transfers may contain coins of other currencies. This
-   contrasts with most of other blockchains where there is only a single
-   native cryptocurrency, and other currencies may be made only using
-   artificial token smart-contracts.
-
-   Currently, this  feature is not  used widely. In this  document, we
-   limit  our specification  effort  only  for the  case  of a  single
-   currency - Evers. This choice significantly simplifies the business
-   logic of the execution handlers.
+   Currently, this  feature is not  used widely.
+   \\
+   \\
+   | <15>                     | <15>                                                                                                                                                                                             |
+   | [[file:./img/excl2.png]] | In this  document, we limit  our specification effort only  for the case  of  a single  currency  -  Evers. This  choice  significantly simplifies the business logic of the execution handlers. |
 
 
 ** Accounts
@@ -357,11 +361,11 @@
     <<storage_used>>
 
     Any  account in  the  EverScale blockchain  is  being charged  for
-    occupying space, on a regular basis. The fee depends on the size of
-    data being  stored, the  current prices and  when the  last charge
+    occupying space, on  a regular basis. The fee depends  on the size
+    of data being stored, the current  prices and when the last charge
     took  place. In  some circumstances,  an account  may also  have a
-    debt,  called due  payment. All  this information  (except current
-    storage prices) is stored in the /StorageInfo/ structure.
+    debt, called  due payment. Most  of this information is  stored in
+    the /StorageInfo/ structure.
 
     #+begin_src rust
       pub struct StorageInfo {
@@ -378,15 +382,17 @@
     #+end_src
 
     #+CAPTION: StorageInfo structure fields
-    |-------------+-------------------------------------------------------------|
-    | Field       | Description                                                 |
-    |-------------+-------------------------------------------------------------|
-    | used        | The amount of bits and cells stored occupied by the account |
-    | last_paid   | Time of the latest payment, expressed as Unix Epoch         |
-    | due_payment | Debt for the account                                        |
+    |-------------+-------------------------------------------|
+    | Field       | Description                               |
+    |-------------+-------------------------------------------|
+    | used        | Blockchain storage use  statistics        |
+    | last_paid   | Time of the latest payment, in Unix Epoch |
+    | due_payment | Debt of the account                       |
+    |             |                                           |
 
 
-    The amount of storage used by the account is encoded with /StorageUsed/.
+    The amount of storage used by the account is encoded with /StorageUsed/
+    struct.
     \\
     \\
     #+CAPTION: StorageUsed structure fields
@@ -416,7 +422,7 @@
 
     The most outer record is the account storage. It contains the account balance
     and the account state. The account state /may/ contain the smart-contract code
-    and data, described by the structure called StateInit.
+    and data, described by the structure called /StateInit/.
 
 
     #+begin_src rust
@@ -483,18 +489,20 @@
       }
     #+end_src
 
-    The /split_depth/ field was initially devoted to large multi-shard
-    smart-contracts, but currently it is not used.
+    - /split_depth/ field was initially devoted to large multi-shard
+      smart-contracts, but currently it is not used.
 
-    The /special/ fields signals the fact that the smart-contract is related
-    to the blockchain system functioning. This is related to very small amount
-    or contracts residing in the Masterchain, i.e. Elector, Config, Giver, etc.
-    There is a special logic of executing messages destined to those contracts.
+    - /special/  fields signals  the fact  that the  smart-contract is
+      related to the blockchain system functioning. This is related to
+      very  small amount  or  contracts residing  in the  Masterchain,
+      i.e. Elector, Config,  Giver, etc.  There is a  special logic of
+      executing messages destined to those contracts.
 
-    The fields /code/ and /data/ encodes the byte-code and the data of a contract.
+    - /code/ and /data/ fields encodes the byte-code and the data of a
+      contract.
 
-    The field /library/ encodes the code libraries the contract may refer to its
-    code. Current status of this the library function is unclear.
+    - /library/ encodes the  code libraries the contract  may refer to
+      its code. Current status of this the library feature is unclear.
 
 ** Messages
    <<messages>>
@@ -614,7 +622,8 @@
    The source address for an external message is always set to /AddrNone/.
 
    The second variant /AddrExtern/ is not supported currently.
-
+   \\
+   \\
    | <15>                     | <15>                                                                                                                                                                                                                               |
    | [[file:./img/excl2.png]] | The field /import_fee/ should have been the value paid to the validator for processing an external message. But in the current node, this field is not used. Hence, the fee is not paid. We reported this issue to the developers.  |
 
@@ -969,7 +978,7 @@
     Let  $last\_paid$ denote  the time  moment of  the latest  storage
     payment. If the payment didn't take place, $last\_paid = 0$.
 
-    To simply  the calculation form,  let us introduce a new list
+    To simplify  the calculation form,  let us introduce a new list
     $Pr'$, such that:
 
     $$Pr' = \langle  (pr_k, t'_k), ..., (pr_N, t'_N)  \rangle $$ where
@@ -984,7 +993,7 @@
     We also add two more elements  from the left and the right: $$Pr''
     =  \langle  (pr_k, last\_paid)  \rangle  \cdot  Pr' \cdot  \langle
     (pr_N,   now)  \rangle$$   Here,   dot   operator  denotes   lists
-    concatenation binary operation.
+    concatenation operation.
 
     The total storage fee for the time interval is:
 
@@ -999,7 +1008,6 @@
      <<calc_storage_fee>>
 
     We provide the pseudo-code for the algorithm /calc_storage_fee/, implemented in imperative fashion.
-    It resemble how it is implemented in the node.
 
     *_Input:_*
     - storage_info - the account storage info struct, has type [[storage_info][StorageInfo]].
@@ -1048,21 +1056,21 @@
           return (fee, storage_info)
     #+end_src
 
-*** Special Smart-Contracts
-    In   the  BlockchainConfig   parameters,   there  is   a  set   of
-    smart-contract  addresses   that  have   special  status   in  the
-    system. Being system-oriented, validators are obligated to process
-    their execution in a special priveledged manner.
+*** Special Smart-Contracts    
+    In EverScale  blockchain, there is  a set of  smart-contracts that
+    have a  distinguished status in  the system. For  those contracts,
+    validators are obligated  to process their execution  in a special
+    priveledged  manner. Such  smart-contracts are called /special/ or
+    /system/. Accounts storing those contracts are called the same.
 
-    The special smart-contracts enjoy the following privilege:
+    Special smart-contracts enjoy the following privilege:
     - No fee gets deducted for the code execution
     - No fee gets deducted for the storage use
     - No fee gets deducted for message passing
     - It has a special maximum gas limit, see /GasLimitsPrices.special_gas_limit/
-    - The value /storage_state.last_paid/ is always equals 0
 
-    Upon executing  message for  one of  those special  contracts, the
-    Executor applies all those conditions.
+    Upon executing a  message for one of those  special contracts, the
+    Executor has to apply all those conditions.
 
     | [[file:./img/excl2.png]]  | In this document, we mainly focus on ordinary accounts, leaving the special accounts processing details aside. |
 
@@ -1109,10 +1117,11 @@
 
 
 *** Error Code Enumeration
-    When Executor encounters an error during message processing, it returns a
-    special answer to the calling side. The answer contains an error code.
-    Here we list possible error codes and their short description. In out further
-    discussion, we rely on those mnemonic names.
+    When Executor  encounters an  error during message  processing, it
+    returns a special answer to  the calling side. The answer contains
+    an error code.  Here we list  possible error codes and their short
+    description. In our further discussion,  we rely on those mnemonic
+    names.
 
    |-------------------------+-----------------------------------------------------------------------------------------|
    | Error Mnemonic Name     | Description                                                                             |
@@ -1164,7 +1173,7 @@
     #+end_src
 
     This description object may be used  for fast checkups on the main
-    system invariants, critical for its safety.
+    system invariants, critical for its safety, during runtime.
 
     |--------------+--------------------------------------------------------|
     | Field        | Description                                            |
@@ -1191,15 +1200,15 @@
       }
     #+end_src
 
-    /storage_fees_collected/  denotes the  amount  of tokens  deducted
-    from the account balance to cover the storage fee.
+    - /storage_fees_collected/  denotes the  amount  of tokens  deducted
+      from the account balance to cover the storage fee.
 
-    /storage_fees_due/   denotes  the   debt   value,   if  there   is
-    any. Otherwise, this value equals /None/.
+    - /storage_fees_due/   denotes  the   debt   value,   if  there   is
+      any. Otherwise, this value equals /None/.
 
-    /status_change/ denotes the possible account status change. It may
-    have been the  case that the status were frozen  or deleted due to
-    having a significant debt value. Possible values are:
+    - /status_change/ denotes the possible account status change. It may
+      have been the  case that the status were frozen  or deleted due to
+      having a significant debt value. Possible values are:
 
     #+begin_src rust
       pub enum AccStatusChange {
@@ -1372,7 +1381,7 @@
     | RESULT_CODE_INCORRECT_DST_ADDRESS     | Incorrect destination address, or destination workchain is not allowed to receive messages, or destination workchain does not exist |
     | RESULT_CODE_ANYCAST                   | Destination address of type Anycast. It is no longer supported and considered an error.                         |
     | RESULT_CODE_NOT_ENOUGH_GRAMS          | Insufficient balance. See [[rc_remarks][remarks]].                                               |
-    | RESULT_CODE_NOT_ENOUGH_EXTRA          | Extra-tokens balance is insufficient to execute to action *link*                                                                    |
+    | RESULT_CODE_NOT_ENOUGH_EXTRA          | [[multicurrency][Extra-tokens]] balance is insufficient to execute to action                                                                |
     | RESULT_CODE_INVALID_BALANCE           | Reserve action lead to an error, or outgoing message is too big to process                                                          |
     | RESULT_CODE_BAD_ACCOUNT_STATE         | Actions SetCode or ChangeLib lead to an error                                                                                       |
     | RESULT_CODE_UNSUPPORTED               | SendMsg action has incorrect flags set                                                                                              |
@@ -1460,25 +1469,25 @@
    go deep on each of them further.
 
    #+begin_src rust
-      pub enum OutAction {
-          SendMsg {
-              mode: u8,
-              out_msg: Message,
-          },
-          SetCode {
-              new_code: Cell,
-          },
-          ReserveCurrency {
-              mode: u8,
-              value: CurrencyCollection,
-          },
-          ChangeLibrary {
-              mode: u8,
-              code: Option<Cell>,
-              hash: Option<UInt256>,
-          }
-          // , None <- default value; skipped.
-      }
+     pub enum OutAction {
+         None, // default value
+         SendMsg {
+             mode: u8,
+             out_msg: Message,
+         },
+         SetCode {
+             new_code: Cell,
+         },
+         ReserveCurrency {
+             mode: u8,
+             value: CurrencyCollection,
+         },
+         ChangeLibrary {
+             mode: u8,
+             code: Option<Cell>,
+             hash: Option<UInt256>,
+         }
+     }
    #+end_src
 
    |-----------------+------------------------------------------------------------------|
@@ -1602,7 +1611,7 @@
 
   *_Output:_*
 
-  On success, returns Ok(acc1, trans), such that:
+  On success, returns /Ok(acc1, trans)/, such that:
    - /acc1/ - updated account, has type [[accounts][Account]]
    - /trans/ - transaction, has type [[transaction][Transaction]]
   On error, returns error of the type /TransactionExecutor.TrExecutorError/
@@ -1731,8 +1740,9 @@
         return Ok(tr, account)
  #+end_src
 
- The function /add_messages/ assigns the proper logical timestamp for each message from the out_msgs collection,
- and then include the message into the transaction.
+ The function /add_messages/ assigns  the proper logical timestamp for
+ each  message from  the  out_msgs collection,  and  then include  the
+ message into the transaction.
 
  #+begin_src python
    def add_messages(tr, out_msgs, lt):
@@ -1761,7 +1771,7 @@
 
   *_Output:_*
 
-  On success, returns Ok(acc1, trans), such that:
+  On success, returns /Ok(acc1, trans)/, such that:
     - /acc1/ - updated account, has type [[account][Account]]
     - /trans/ - transaction, has type [[transaction][Transaction]]
   On error, returns error of the type /TransactionExecutor.TrExecutorError/
@@ -2147,9 +2157,9 @@
     In case of the former, the exit code should have values 0 or 1.
 
     In  case of  the latter,  the exception  might be  of a  system or
-    custom  nature.  If  the  exception  is a  system  one, i.e.   not
-    intentionally inspired by the code,  the exit code contains one of
-    the standard exit codes.
+    custom  type.  If  the  exception  is a  system  one, i.e.   not
+    intentionally emitted by the code using a special TVM instruction,
+    the exit code contains one of the standard exit codes.
 
     If the exception  is custom, then the exit code  should also equal
     to 0  or 1, but there  is an extra /exit_arg/  field that provides
@@ -2362,7 +2372,7 @@
    - /messages/ denotes a list of messages to be sent, has type list([[messages][Message]])
 
    On error, returns /Err(result_code)/, such that:
-   - /result_code/ describes the nature of an error, see [[action_result_codes][here]].
+   - /result_code/ describes a type of an error, see [[action_result_codes][here]].
 
    *_Modifies_:*
    - /tr/
