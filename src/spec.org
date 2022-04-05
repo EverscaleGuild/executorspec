@@ -208,7 +208,7 @@
 
 ** Multicurrency payments
    <<multicurrency>>
-   
+
    The native  coin of EverScale  blockchain is called  /Ever/. However,
    EverScale has an ablility to work with other types of coins.  While
    system payments like  gas and storage fees are made  only in Evers,
@@ -336,11 +336,8 @@
     huge blockchains, when the standard 8-bit /workchain_id/ is not enough,
     and not supported currently.
 
-    The type /Number9/ denotes natural numbers in a range $0 ... 2^{9} - 1$.
-
-    The type /SlideData/ denotes a binary blob encoded in a tree data structure.
-
-    The type /i32/ is a 32-bit integer.
+    - Type /SlideData/ denotes a binary blob encoded in a tree data structure.
+    - Type /i32/ is a 32-bit integer.
 
     #+CAPTION: MsgAddrStd structure fields
     #+OPTIONS: ^:{}
@@ -388,11 +385,13 @@
     | used        | Blockchain storage use  statistics        |
     | last_paid   | Time of the latest payment, in Unix Epoch |
     | due_payment | Debt of the account                       |
-    |             |                                           |
-
-
-    The amount of storage used by the account is encoded with /StorageUsed/
-    struct.
+    \\
+    \\
+    - Type /Grams/ is a set of natural numbers in the range $\{0 ... 2^{256}\}$,
+      equipped with $+$ and $-$ operators, such that
+      $$a - b = 0 \iff b >= a$$
+    - Amount of storage used by the account is encoded with /StorageUsed/
+      struct.
     \\
     \\
     #+CAPTION: StorageUsed structure fields
@@ -501,8 +500,8 @@
     - /code/ and /data/ fields encodes the byte-code and the data of a
       contract.
 
-    - /library/ encodes the  code libraries the contract  may refer to
-      its code. Current status of this the library feature is unclear.
+    - /library/ used to encode the  code libraries the contract  may refer to
+      from its code. This mechanism is deprecated.
 
 ** Messages
    <<messages>>
@@ -610,7 +609,10 @@
      }
    #+end_src
 
-   The fields /src/  and /dst/  are source and destination addresses.
+   - Fields /src/  and /dst/  are source and destination addresses.
+   - Field /import_fee/ should have been the value paid to the validator for processing an external message.
+     But in the current node, this field is not used. Hence, the fee is not paid. We reported this issue to the developers.
+   - The source address for an external message is always set to /AddrNone/.
 
    #+begin_src rust
      pub enum MsgAddressExt {
@@ -619,13 +621,7 @@
      }
    #+end_src
 
-   The source address for an external message is always set to /AddrNone/.
-
    The second variant /AddrExtern/ is not supported currently.
-   \\
-   \\
-   | <15>                     | <15>                                                                                                                                                                                                                               |
-   | [[file:./img/excl2.png]] | The field /import_fee/ should have been the value paid to the validator for processing an external message. But in the current node, this field is not used. Hence, the fee is not paid. We reported this issue to the developers.  |
 
 
 *** Events
@@ -652,15 +648,15 @@
      }
    #+end_src
 
-   Executor automatically assigns the source address as the smart-contract
-   address emitted the event.
+   - Executor automatically assigns the source address /src/ to be equal to
+     the smart-contract address emitting the event.
 
-   The destination address /dst/ may contain any identifier. It is included
-   solely for information purposes. For example, in /TON Solidity/ language,
-   the /emit/ operator may be equipped with destination address parameter.
+   - The destination address /dst/ may contain any identifier. It is included
+     for easier integration with off-chain applications, i.e. they could monitor
+     emitted events based on their destination address.
 
-   Fields /created_lt/, /created_at/ defines the logical creation time
-   and epoch creation time.
+   - Fields /created_lt/, /created_at/ defines the logical creation time
+     and epoch creation time.
 
 ** Parameters
    <<parameters>>
@@ -786,15 +782,14 @@
 *** Executor Types
 
     There are several  type of messages in  EverScale. Besides already
-    mentioned, there  are also a  special type  of messages that  is a
-    part  of  a  wider  protocol.   For  example,  TickTock  messages,
-    SplitMerge messages, etc.
+    mentioned  ordinary messages,  there are  also a  special type  of
+    messages  that  is a  part  of  a  wider protocol.   For  example,
+    TickTock messages, SplitMerge messages, etc.
 
-    There  are  several  Executors  available  for  different  message
-    categories.     In   this    work,    we    consider   only    the
-    OrdinaryTransactionExecutor,      that      is     defined      in
-    /orderinary_transaction.rs/.  Other  types  of Executors  are  not
-    considered here.
+    For each type of messages, there exists a separate Executor.
+    In this  work, we  consider only  the OrdinaryTransactionExecutor,
+    that is  defined in
+    [[https://github.com/tonlabs/ton-labs-executor/blob/a28bde3e65dd35573d34e32aa4477d60162b5338/src/ordinary_transaction.rs][orderinary_transaction.rs]].
 
 *** Main Entry Point
    #+begin_src rust
@@ -1056,7 +1051,7 @@
           return (fee, storage_info)
     #+end_src
 
-*** Special Smart-Contracts    
+*** Special Smart-Contracts
     In EverScale  blockchain, there is  a set of  smart-contracts that
     have a  distinguished status in  the system. For  those contracts,
     validators are obligated  to process their execution  in a special
