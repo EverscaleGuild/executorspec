@@ -155,8 +155,7 @@
    responsible  for proper  execution  of a  smart-contract code  upon
    receiving a message addressed to that smart-contract. The result of
    this  execution   is  an  updated  smart-contract   state  and  the
-   transaction record that gets sealed  into the block (the next block
-   of a chain).
+   transaction record that gets sealed  into the block candidate.
 
    We now go into details on the internals of this module.
 
@@ -196,7 +195,7 @@
 
    Each  blockchain might  be  established by  introducing a  separate
    chain  called  workchain.   Each  workchain has  a  unique  integer
-   identifier in a range  -1 ... 255, the values -1  and 0 are already
+   identifier in a range  -127 ... 127, the values -1  and 0 are already
    taken.  Smart-contracts from  different workchains may interact
    with each other by message passing.
 
@@ -238,7 +237,7 @@
    a smart-contract  state. The  latter might  be missing,  and yet  the
    account is able to receive basic messages.
 
-   #+CAPTION: EverScale Account
+   #+CAPTION: Simplified representation of an EverScale Account. 
    #+NAME:   fig:account
    #+ATTR_HTML: :style width:40%
    [[./img/account.svg]]
@@ -335,10 +334,12 @@
     or /MsgAddrVar/. The latter is used to locate accounts in
     huge blockchains, when the standard 8-bit /workchain_id/ is not enough,
     and not supported currently.
-
-    - Type /SlideData/ denotes a binary blob encoded in a tree data structure.
-    - Type /i32/ is a 32-bit integer.
-
+    \\
+    \\
+    - Type /SliceData/ denotes a binary blob encoded in a tree data structure.
+    - Type /i8/ is an 8-bit signed integer.
+      \\
+      \\
     #+CAPTION: MsgAddrStd structure fields
     #+OPTIONS: ^:{}
     | Field        | Description                               |
@@ -463,17 +464,20 @@
 
     Let us clarify the fields of enumeration items.
 
-    For the /AccountActive/, the value /init_code_hash/ defines the
-    hash of a state_init that was used at the moment of account
-    initialization. During the initialization, this value should be
-    equal to a hash of code and data of a smart-contract for this account.
+    For the  /AccountActive/, the  value /init_code_hash/  defines the
+    hash of the  field /state_init.code/ that was used at  the moment of
+    account  initialization.  During  the initialization,  this  value
+    should be equal to a hash of code and data of a smart-contract for
+    this account.
 
-    It is possible to change both code and data for the account, but this
-    value will not change. This value defines the address of a smart-contract
-    within the current workchain.
+    It is possible  to change both the code and  data for the account,
+    effectively changing the smart-contract logic on the fly. However,
+    the  value  /init_code_hash/  will  not change.   It  defines  the
+    address of a smart-contract within the current workchain.
 
-    It is the same for /AccountFrozen/. The value of /state_init_hash/
-    defines the hash of the smart-contract /state/ at the moment of a freeze.
+    The same holds for /AccountFrozen/. The value of /state_init_hash/
+    defines the  hash of  the smart-contract /state_init.code/  at the
+    moment of a freeze.
 
 **** Smart-Contract Storage (StateInit)
     The byte-code and data of a contract are stored within the following
@@ -507,7 +511,7 @@
    <<messages>>
    Smart-contracts interact with each other by sending and receiving /messages/.
 
-   A message is a data block that encodes:
+   A message is a data block that encodes one of the following:
    - desired function call at a destination  smart-contract,  together  with  an  amount  of  coins attached to the call.
    - event log record to signal external observers about some significant state being reached
 
@@ -526,8 +530,8 @@
      }
    #+end_src
 
-   The last two fields /body_to_ref/ and /init_to_ref/ are not used in the Executor, hence
-   not considered in this document.
+   The last two  fields /body_to_ref/ and /init_to_ref/  are used only
+   for serialization purpose, hence not considered in this document.
 
 
 *** Message Header
@@ -652,8 +656,9 @@
      the smart-contract address emitting the event.
 
    - The destination address /dst/ may contain any identifier. It is included
-     for easier integration with off-chain applications, i.e. they could monitor
-     emitted events based on their destination address.
+     for easier integration with off-chain applications, i.e. applications can
+     monitor emitted events based on their destination address, and consume
+     only those events destined to their custom identifier.
 
    - Fields /created_lt/, /created_at/ defines the logical creation time
      and epoch creation time.
@@ -685,7 +690,7 @@
    |----------------+-------------------------------------------------------------------------------------|
    | Field          | Description                                                                         |
    |----------------+-------------------------------------------------------------------------------------|
-   | state_libs     | A set of references to external libraries. This mechanism is not support currently. |
+   | state_libs     | A set of references to external libraries. This mechanism is not supported currently. |
    | block_unixtime | Current time in Unix Epoch                                                          |
    | block_lt       | Block logical time                                                                  |
    | last_tr_lt     | The last transaction logical time                                                   |
@@ -754,25 +759,27 @@
 
    The      main      entry       point      is      the      function
    /execute_with_libs_and_params()/  within  /transaction_executor.rs/
-   module. Other entry  points are were either  flagged as deprecated,
+   module. Other entry  points were either  flagged as deprecated,
    or  reduce to  calling this  function after  some minor  parameters
    mangling.
 
    The message execution is being done in several phases.
 
-   A /phase/ is a logical step during the message execution. It may
+   A /phase/  is a logical step  during the message execution.  It may
    finish successfully or with an error. In case of an error, the next
    phase may not be executed. Phases are done mostly in a fixed order,
    but there are some nuances.
 
    Let us warn you that the phase is not just an implementation detail
-   of the Executor internals that may be easily discarded. Message execution
-   phases are a part of EverScale smart-contracts programming architecture.
-   It is assumed that you have a good grasp on it, to be able to do proper
-   troubleshooting in case something is not working as expected. Without
-   this knowledge, it may be challenging to debug the problem.
+   of the  Executor internals  that may  be easily  discarded. Message
+   execution   phases  are   a  part   of  EverScale   smart-contracts
+   programming architecture.  It is assumed that you have a good grasp
+   on it, to be able to do proper troubleshooting in case something is
+   not  working  as  expected.  Without  this  knowledge,  it  may  be
+   challenging to debug the problem.
 
-   This document aims to support programmers in their strive for this knowledge.
+   This document aims to support  programmers in their strive for this
+   knowledge.
 
    #+CAPTION: Executor Message Processing General Scheme
    #+NAME:   fig:phases
@@ -786,10 +793,10 @@
     messages  that  is a  part  of  a  wider protocol.   For  example,
     TickTock messages, SplitMerge messages, etc.
 
-    For each type of messages, there exists a separate Executor.
-    In this  work, we  consider only  the OrdinaryTransactionExecutor,
-    that is  defined in
-    [[https://github.com/tonlabs/ton-labs-executor/blob/a28bde3e65dd35573d34e32aa4477d60162b5338/src/ordinary_transaction.rs][orderinary_transaction.rs]].
+    For each type  of messages, there exists a  separate Executor.  In
+    this work, we consider  only the OrdinaryTransactionExecutor, that
+    is                            defined                           in
+    [[https://github.com/tonlabs/ton-labs-executor/blob/a28bde3e65dd35573d34e32aa4477d60162b5338/src/ordinary_transaction.rs][ordinary_transaction.rs]].
 
 *** Main Entry Point
    #+begin_src rust
@@ -864,7 +871,7 @@
 *** Code Execution Fee
     As  in  most  of  blockchain,  in EverScale  the  execution  of  a
     smart-contract costs money.  Usually, this fee is deduced from the
-    coins attached to  the message, initiated the call,  but there are
+    coins attached to  the message initiating the call,  but there are
     nuances.
 
     The fee amount to be deducted from the balance is calculated based
@@ -937,8 +944,9 @@
     $$fee = (cells * prices.cell\_price + bits * prices.bit\_price) * \Delta$$
 
     $\Delta$ -  the time interval  between now and the  latest payment
-    moment, measured in seconds.  The fee gets charged on each message
-    processing [[storage_phase]].
+    moment, measured in  seconds. Here, we assume  that storage prices
+    stay constant  during the $\Delta$ interval. The storage fee gets
+    charged on each message processing [[storage_phase]].
 
     For  greater  flexibility,  the  storage  prices  may  be  changed
     depending on  the current supply/demand  situation. It is  done by
@@ -963,17 +971,18 @@
     $$Pr = \langle (pr_0, t_0), (pr_1, t_1), ..., (pr_N, t_N) \rangle $$
 
     Here, $pr_0$  is reserved for the initial prices set in the
-    genesis block of the blockchain, and $t_0$ is a time moment of
+    genesis block of the blockchain, and $t_0$ is a timestamp of
     those initial prices being set.
 
-    Let $now$ denote the current  time moment, i.e. the moment of time
-    when we want to calculate the storage fee.
-    It is always greater or equal than the most recent price change.
+    Let $now$ denote the current  timestamp, i.e. the moment of time
+    when we want to calculate the storage fee, measured in Unix Epoch.
+    Its value is always greater or equal than the most recent price change
+    timestamp.
 
-    Let  $last\_paid$ denote  the time  moment of  the latest  storage
+    Let  $last\_paid$ denote  the timestamp of  the latest  storage
     payment. If the payment didn't take place, $last\_paid = 0$.
 
-    To simplify  the calculation form,  let us introduce a new list
+    To simplify  the calculation formula,  let us introduce a new list
     $Pr'$, such that:
 
     $$Pr' = \langle  (pr_k, t'_k), ..., (pr_N, t'_N)  \rangle $$ where
@@ -1002,7 +1011,9 @@
 **** Data Storage Fee Calculation Algorithm
      <<calc_storage_fee>>
 
-    We provide the pseudo-code for the algorithm /calc_storage_fee/, implemented in imperative fashion.
+    For greater  convenience, besides  having the formula,  we provide
+    the pseudo-code for  the algorithm /calc_storage_fee/, implemented
+    in imperative fashion.
 
     *_Input:_*
     - storage_info - the account storage info struct, has type [[storage_info][StorageInfo]].
@@ -1063,6 +1074,7 @@
     - No fee gets deducted for the storage use
     - No fee gets deducted for message passing
     - It has a special maximum gas limit, see /GasLimitsPrices.special_gas_limit/
+    - Allowed to process TickTock timer messages
 
     Upon executing a  message for one of those  special contracts, the
     Executor has to apply all those conditions.
@@ -1100,11 +1112,12 @@
           pub config_params: HashmapE // <u32, SliceData>
       }
     #+end_src
-
-    /config_addr/   -  is the configuration smart-contract address,
-    /config_params/ -  dictionary with parameters; dictionary keys refers
-    to an option number. We will not go deep into those options, because
-    they are not relevant to our work.
+    \\
+    \\
+    - /config_addr/   -  is the configuration smart-contract account id (the workchain id equals -1)
+    - /config_params/ -  dictionary with parameters; dictionary keys refers
+      to an option number. We will not go deep into those options, because
+      they are not relevant to our work.
 
     See
     [[https://github.com/tonlabs/ton-labs-block/blob/4b34a73619b53ebda37f3cb6cc44d26925053219/src/config_params.rs#L38][ton-labs-block/src/config_params.rs]]
@@ -1177,7 +1190,7 @@
     | credit_ph    | [[credit_phase_descriptor][Credit phase descriptor]]   |
     | compute_ph   | [[compute_phase_descriptor][Compute phase descriptor]] |
     | action       | [[action_phase_descriptor][Action phase descriptor]]   |
-    | bounce_ph    | [[bounce_phase_descriptor][Bounce phase descriptor]]   |
+    | bounce       | [[bounce_phase_descriptor][Bounce phase descriptor]]   |
     | credit_first | Credit phase was executed before Storage phase         |
     | aborted      | Is Action phase failed                                 |
     | destroyed    | Is account /deleted/ after message execution           |
@@ -1261,7 +1274,7 @@
       }
     #+end_src
 
-    /reason/ may be one of the following:
+    /reason/ has to be one of the following:
 
     #+begin_src rust
       pub enum ComputeSkipReason {
@@ -1279,7 +1292,7 @@
     |----------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
     | BadState | Caused by the following conditions: 1) The account was in /AccStateUninit/ state, the message did contain the /StateInit/ part, but an attempt to initialize the account with the given /StateInit/ failed due to being inconsistent with the account; 2) The account was in /AccStateFrozen/ state, the message contained the /StateInit/ part, but an attempt to unfreeze the account with the given state init failed due to being inconsistent with the account. |
     |----------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-    | NoGas    | Caused by the following conditions: 1) After Credit and Storage phases, the account balance had no coins: its balance equals zero; 2) Values /gas_limit/ и /gas_credit/, calculated with the [[init_gas][init_gas]] algorithm, both equals 0.                                                                                                                                                                                                                      |
+    | NoGas    | Caused by the following conditions: 1) After Credit and Storage phases, the account balance had no coins: its balance equals zero; 2) Values /gas_limit/ and /gas_credit/, calculated with the [[init_gas][init_gas]] algorithm, both equals 0.                                                                                                                                                                                                                    |
     |----------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
     *Choice 2. Successful computation*
@@ -1346,22 +1359,22 @@
       }
     #+end_src
 
-    | Field             | Description                                                                                            |
-    |-------------------+--------------------------------------------------------------------------------------------------------|
-    | success           | Action phase completed successfully. The success condition is described [[action_phase_success][here]]. |
-    | valid             | Action phase is valid. The validity condition is described [[action_phase_valid][here]].               |
-    | result_code       | Action phase failed with the result code, see [[action_result_codes]]                                  |
-    | result_arg        | In case of an error, the item number of an action in the action list that caused the error             |
-    | no_funds          | True if the error was caused by a balance insufficiency                                                |
-    | status_change     | Equals AccStatusChange::Deleted in case of the account being deleted after processing actions          |
-    | total_fwd_fees    | Total fees for the SendMsg actions processing                                                          |
-    | total_action_fees | Total fees for the whole action list processing                                                        |
-    | tot_actions       | Total number of actions in the action list at a beginning of the Action phase                          |
-    | spec_actions      | Number of special actions, i.e. Reserve, SetCode, SetLib                                               |
-    | msg_created       | Number of successful SendMsg actions                                                                   |
-    | action_list_hash  | Hash of action list calculated at a beginning of the Action phase                                      |
-    | tot_msg_size      | Total size of all the generated messages                                                               |
-    | skipped_actions   | Not used                                                                                               |
+    | Field             | Description                                                                                                      |
+    |-------------------+------------------------------------------------------------------------------------------------------------------|
+    | success           | Action phase completed successfully. The success condition is described [[action_phase_success][here]].          |
+    | valid             | Action phase is valid. The validity condition is described [[action_phase_valid][here]].                         |
+    | result_code       | Action phase failed with the result code, see [[action_result_codes]]. In case of success, the value equals to 0 |
+    | result_arg        | In case of an error, the item number of an action in the action list that caused the error                       |
+    | no_funds          | True if the error was caused by a balance insufficiency                                                          |
+    | status_change     | Equals AccStatusChange::Deleted in case of the account being deleted after processing actions                    |
+    | total_fwd_fees    | Total fees for the SendMsg actions processing                                                                    |
+    | total_action_fees | Total fees for the whole action list processing                                                                  |
+    | tot_actions       | Total number of actions in the action list at a beginning of the Action phase                                    |
+    | spec_actions      | Number of special actions, i.e. Reserve, SetCode, SetLib                                                         |
+    | msg_created       | Number of successful SendMsg actions                                                                             |
+    | action_list_hash  | Hash of action list calculated at a beginning of the Action phase                                                |
+    | tot_msg_size      | Total size of all the generated messages                                                                         |
+    | skipped_actions   | Not used                                                                                                         |
 
 **** Action Result Codes
     <<action_result_codes>>
@@ -1392,11 +1405,11 @@
          - The flag SENDMSG_DELETE_IF_EMPTY is set, but the flag SENDMSG_ALL_BALANCE isn't;
        - Reserve action has invalid flags
          - Unknown flag is set
-         - Flag RESERVE_PLUS_ORIG is set, but RESERVE_RESERVE isn't
+         - Flag RESERVE_PLUS_ORIG is set, but RESERVE_REVERSE isn't
     2. /RESULT_CODE_NOT_ENOUGH_GRAMS/ reasons are:
        - For SendMsg action, the flag SENDMSG_REMAINING_MSG_BALANCE is set, but SENDMSG_PAY_FEE_SEPARATELY isn't
-       - Message balance is insufficient to cover message delivery fees *link*
-       - Account balance is insufficient to cover all message delivery fees *link*
+       - Message balance is insufficient to cover message delivery fees
+       - Account balance is insufficient to cover all message delivery fees
 
 
 **** Bounce Phase Transaction Descriptor
@@ -1414,7 +1427,8 @@
 
     - Negfunds choice is not used.
     - Nofunds(TrBouncePhaseNofunds) denotes the insufficiency of account balance, details are put into the parameter value
-    - Ok(TrBouncePhaseOk) denotes success. Details of the phase are put into the parameter value
+    - Ok(TrBouncePhaseOk) denotes success, i.e. that the bounce message has been formed and put into the Msg queue.
+      Details of the phase are put into the parameter value.
 
     *Choice 1. Nofunds*
 
@@ -1425,8 +1439,9 @@
       }
     #+end_src
 
-    Here, /msg_size/ - the size of generated bounce message. This value is not used.
-    The field /req_fwd_fees/ denotes the fee for the message delivery.
+    - /msg_size/ denotes the size of generated bounce message. This value is not used.
+
+    - /req_fwd_fees/ denotes the fee for the message delivery.
 
 
     *Choice 2. Ok(TrBouncePhaseOk)*
@@ -1500,7 +1515,8 @@
     $SendMsg(mode,out\_msg)$ action sends a message to an account. The message $out\_msg$ contains
     the destination address as well as the payload to be delivered.
 
-    This action has a lot of modes that can be combined using logical /OR/ operator.
+    This action has a lot of  modes that can be combined using logical
+    /OR/ operator. Some mode combinations are prohibited. See [[rc_remarks]].
 
     <<sendmsg_flags>>
 
@@ -1557,7 +1573,7 @@
 
   *_Input:_*
   - /in_msg/ - incoming message, has type [[messages][Message]]
-  - /acc/ - account, has type [[account][Account]]
+  - /account/ - account, has type [[account][Account]]
   - /params/ - executor parameters, has type [[parameters][Parameters]]
   - /config/ - blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
 
@@ -1576,13 +1592,11 @@
     def ExecuteMessage(in_msg, account, params, config):
         if in_msg == None:
             return ExecutorError.TrExecutorError()
-        if in_msg.hdr is ExtOutMessageHeader:
+        if in_msg.header is ExtOutMsgInfo:
             return ExecutorError.InvalidExtMessage
-        if in_msg.hdr.dst == None:
+        if in_msg.header.dst == None:
             return ExecutorError.TrExecutorError()
-        if config.block >= VERBLOCK_REVERT_ANYCAST:
-            return ExecutorError.TrExecutorError()
-        if in_msg.hdr is ExtInMessageHeader and account.balance == 0:
+        if in_msg.header is ExtInMessageHeader and account.balance == 0:
             return ExecutorError.NoFundsToImportMsg()
 
         if in_msg.header is ExtInMsgInfo:
@@ -1600,7 +1614,7 @@
 
   *_Input:_*
     - /in_msg/ - incoming message, has type  [[messages][Message]]
-    - /acc/ - account, has type [[accounts][Account]]
+    - /account/ - account, has type [[accounts][Account]]
     - /params/ - executor parameters, has type [[parameters][Parameters]]
     - /config/ - blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
 
@@ -1657,7 +1671,7 @@
         account.last_paid = params.block_unixtime
 
         # Parameters to be passed into TVM?
-        smci = build_contract_info(acc_balance, account.address(),
+        smci = build_contract_info(acc_balance, account.address,
                                    params.block_lt, lt, params.seed_block)
         # First element is the bottom of the stack
         stack = Stack([acc_balance, msg_balance, Cell(in_msg), in_msg.body, False])
@@ -1684,7 +1698,7 @@
         if descr.compute_ph.success:
             act_phase_res = action_phase(tr, account, original_acc_balance,
                                          acc_balance, msg_balance, phase.gas_fees,
-                                         actions, new_data, False)
+                                         actions, new_data)
             if act_phase_res is Ok:
                 descr.action = act_phase_res.action_ph
                 out_msgs = act_phase_res.msgs
@@ -1707,12 +1721,12 @@
                     bounce_phase(msg_balance, acc_balance, compute_gas_fees,
                                  tr, my_addr)
                 if bounce_ph_res == Ok(bounce_ph, bounce_msg):
-                    descr.bounce_ph = bounce_ph
+                    descr.bounce = bounce_ph
                     if (bounce_msg != None):
                         out_msgs = out_msgs + [bounce_msg]
                 else:
                     return ExecutorError.TrExecutorError()
-            if descr.bounce_ph is Ok:
+            if descr.bounce is Ok:
                 acc_balance = original_acc_balance
                 if account.status == AccountStatus.AccStateUninit and \
                    acc_balance == 0:
@@ -1760,7 +1774,7 @@
 
   *_Input:_*
     - /in_msg/ - incoming message, has type [[messages][Message]]
-    - /acc/ - account, has type [[accounts][Account]]
+    - /account/ - account, has type [[accounts][Account]]
     - /params/ - executor parameters, has type [[parameters][Parameters]]
     - /config/ - blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
 
@@ -1809,7 +1823,7 @@
       account.last_paid = params.block_unixtime
 
       # Parameters to be passed into TVM
-      smci = build_contract_info(acc_balance, account.address(),
+      smci = build_contract_info(acc_balance, account.address,
                                  params.block_lt, lt, params.seed_block)
       # First element is the bottom of the stack
       stack = Stack([acc_balance, msg_balance, Cell(in_msg), in_msg.body, False])
@@ -1817,7 +1831,7 @@
       # Execute Compute Phase
       compute_ph_res = compute_phase(in_msg, account, acc_balance, msg_balance,
                                      params.state_libs, smci, stack,
-                                     is_masterchain, False, params.debug)
+                                     is_masterchain)
 
       if compute_ph_res == Ok(compute_ph, new_data):
           descr.compute_ph = compute_ph
@@ -1834,7 +1848,7 @@
       if descr.compute_ph.success:
           act_phase_res = action_phase(tr, account, original_acc_balance,
                                        acc_balance, msg_balance, phase.gas_fees,
-                                       accounts, new_data, False)
+                                       accounts, new_data)
           if act_phase_res == Ok(action_ph, msgs):
               descr.action = action_ph
               out_msgs = msgs
@@ -1937,6 +1951,9 @@
 
    #+begin_src python
      def storage_phase(account, tr, msg_balance, acc_balance):
+         # Current transaction must have more recent timestamp
+         # than the latest payment timestamp. Otherwise, something
+         # is terribly wrong.
          if tr.now < acc.last_paid:
              return TransactionExecutor.TrExecutorError()
 

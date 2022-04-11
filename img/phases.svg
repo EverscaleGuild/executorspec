@@ -146,8 +146,8 @@
   </g>
   <g class="com.sun.star.drawing.TextShape">
    <g id="id9">
-    <rect class="BoundingBox" stroke="none" fill="none" x="7374" y="4659" width="15801" height="1674"/>
-    <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="635px" font-weight="400"><tspan class="TextPosition" x="7624" y="5360"><tspan fill="rgb(0,0,0)" stroke="none">Executor module handles the message in 5 phases</tspan></tspan></tspan></text>
+    <rect class="BoundingBox" stroke="none" fill="none" x="6045" y="4659" width="17730" height="1674"/>
+    <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="635px" font-weight="400"><tspan class="TextPosition" x="6295" y="5360"><tspan fill="rgb(0,0,0)" stroke="none">Executor module handles the message in at most 5 phases</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
@@ -246,7 +246,7 @@
   <g class="com.sun.star.drawing.TextShape">
    <g id="id24">
     <rect class="BoundingBox" stroke="none" fill="none" x="19474" y="11902" width="3801" height="3010"/>
-    <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="353px" font-weight="400"><tspan class="TextPosition" x="19724" y="12345"><tspan fill="rgb(0,0,0)" stroke="none">Bounce phase is </tspan></tspan><tspan class="TextPosition" x="19724" y="12739"><tspan fill="rgb(0,0,0)" stroke="none">executed if failure </tspan></tspan><tspan class="TextPosition" x="19724" y="13133"><tspan fill="rgb(0,0,0)" stroke="none">happend on compute </tspan></tspan><tspan class="TextPosition" x="19724" y="13527"><tspan fill="rgb(0,0,0)" stroke="none">phase or action </tspan></tspan><tspan class="TextPosition" x="19724" y="13921"><tspan fill="rgb(0,0,0)" stroke="none">phase.It sends back </tspan></tspan><tspan class="TextPosition" x="19724" y="14315"><tspan fill="rgb(0,0,0)" stroke="none">the reply with coins, </tspan></tspan><tspan class="TextPosition" x="19724" y="14709"><tspan fill="rgb(0,0,0)" stroke="none">mostly.</tspan></tspan></tspan></text>
+    <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="353px" font-weight="400"><tspan class="TextPosition" x="19724" y="12345"><tspan fill="rgb(0,0,0)" stroke="none">Bounce phase is </tspan></tspan><tspan class="TextPosition" x="19724" y="12739"><tspan fill="rgb(0,0,0)" stroke="none">executed if failure </tspan></tspan><tspan class="TextPosition" x="19724" y="13133"><tspan fill="rgb(0,0,0)" stroke="none">happened on </tspan></tspan><tspan class="TextPosition" x="19724" y="13527"><tspan fill="rgb(0,0,0)" stroke="none">compute phase or </tspan></tspan><tspan class="TextPosition" x="19724" y="13921"><tspan fill="rgb(0,0,0)" stroke="none">action phase. It </tspan></tspan><tspan class="TextPosition" x="19724" y="14315"><tspan fill="rgb(0,0,0)" stroke="none">sends back the reply </tspan></tspan><tspan class="TextPosition" x="19724" y="14709"><tspan fill="rgb(0,0,0)" stroke="none">with coins, mostly.</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="Group">
