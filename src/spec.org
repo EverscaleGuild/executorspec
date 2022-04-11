@@ -222,6 +222,21 @@
    | <15>                     | <15>                                                                                                                                                                                             |
    | [[file:./img/excl2.png]] | In this  document, we limit  our specification effort only  for the case  of  a single  currency  -  Evers. This  choice  significantly simplifies the business logic of the execution handlers. |
 
+** Hashing Algorithm
+   <<hashing>>
+
+   Executor uses  hashing in  several places  to compactly  store data
+   structures fingerprints. It  is done in two steps.  First, the data
+   structure gets  converted into  a tree-like  form.  Then, a special
+   hashing algorithm is applied to  that tree. The basic hash function
+   used is SHA256  from [[https://docs.rs/sha2/latest/sha2/][Sha2 Rust
+   package]].
+
+   The exact hashing algorithm, as well as tree-like representation is
+   not interesting  for our purposes, so  we do not consider  it here.
+   For                          details,                         check
+   [[https://github.com/tonlabs/ton-labs-types/blob/af1dc71a9a2b46cb0d55a0956e44726374ba7c0c/src/cell/mod.rs#L841][this]].
+
 
 ** Accounts
    <<accounts>>
@@ -237,7 +252,7 @@
    a smart-contract  state. The  latter might  be missing,  and yet  the
    account is able to receive basic messages.
 
-   #+CAPTION: Simplified representation of an EverScale Account. 
+   #+CAPTION: Simplified representation of an EverScale Account.
    #+NAME:   fig:account
    #+ATTR_HTML: :style width:40%
    [[./img/account.svg]]
@@ -388,9 +403,13 @@
     | due_payment | Debt of the account                       |
     \\
     \\
-    - Type /Grams/ is a set of natural numbers in the range $\{0 ... 2^{256}\}$,
-      equipped with $+$ and $-$ operators, such that
-      $$a - b = 0 \iff b >= a$$
+    - Type /Grams/ denotes a set of natural numbers $\{0, ..., 2^{256}\}$,
+      equipped with $\oplus$ and $\ominus$ operators, such that:
+      $$a \oplus b = a + b \,\, \boldsymbol{mod} \,\, 2^{256}$$
+      $$a \ominus b = \boldsymbol{max}(a - b, 0)$$
+      Here, $+$ and $-$ operators are standard addition and subtraction operators
+      in a set of integers $\mathbb{Z}$
+
     - Amount of storage used by the account is encoded with /StorageUsed/
       struct.
     \\
@@ -985,25 +1004,24 @@
     To simplify  the calculation formula,  let us introduce a new list
     $Pr'$, such that:
 
-    $$Pr' = \langle  (pr_k, t'_k), ..., (pr_N, t'_N)  \rangle $$ where
-    $t'_k$ is the  least timestamp among values $t_1 ...  t_N$ that is
+    $$Pr' = \langle  (pr_k, t_k), ..., (pr_N, t_N)  \rangle $$ where
+    $t_k$ is the  least timestamp among values $t_1 ...  t_N$ that is
     /greater/ than  $last\_paid$.
-    $$t'_k = min \{ t_i | t_i \in T \land t_i > last\_paid \}$$
+    $$t_k = min \{ t_i | t_i \in T \land t_i > last\_paid \}$$
 
-    In  other words, the  values $t'_k,
-    ...,  t'_N$ form  a subset  of $T$  where each  value is  strictly
-    greater than $last\_paid$.
+    In  other words, the  values $t_k, ...,  t_N$ form  a subset  of
+    $T$  where each  value is  strictly greater than $last\_paid$.
 
     We also add two more elements  from the left and the right: $$Pr''
     =  \langle  (pr_k, last\_paid)  \rangle  \cdot  Pr' \cdot  \langle
     (pr_N,   now)  \rangle$$   Here,   dot   operator  denotes   lists
     concatenation operation.
 
-    The total storage fee for the time interval is:
-
-    Here, we  use shortcuts:  $pr_i = fst(Pr''_i)$ -
+    We  use the following shortcuts:  $pr_i = fst(Pr''_i)$ -
     the first element  of a two-element tuple,  and
     $t_i = snd(Pr''_i)$, the second element.
+
+    The total storage fee for the time interval is:
 
     $$ total\_storage\_fee = \sum_{i=1..|Pr''|}{(cells * pr_{i}.cell\_price + bits * pr_{i}.bits\_price) * (t_i - t_{i-1})} $$
 

@@ -4,3 +4,4 @@
 #+email: evgeniy.shishkin@gmail.com
 #+options: toc:4 H:5 num:4 ^:nil html-postamble:nil
 #+LANGUAGE: en
+#+LATEX_HEADER: \usepackage{bm}
