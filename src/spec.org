@@ -310,6 +310,8 @@
          storage_stat: StorageInfo,
          storage: AccountStorage,
      }
+
+     type Account = Option<AccountStuff>
    #+end_src
 
    #+CAPTION: AccountStuff structure fields
@@ -833,7 +835,7 @@
    |--------------+-----------------------------------------------------------|
    | self         | Reference to the object calling the function              |
    | in_msg       | Incoming message [[messages]]                             |
-   | account_root | Account record serialized in a form of Cells [[accounts]] |
+   | account_root | Account record serialized in a form of Cells [[account]]  |
    | params       | Executor parameters [[parameters]]                        |
 
    As a result, the function  returns either Ok(Transaction) object or
@@ -1632,14 +1634,14 @@
 
   *_Input:_*
     - /in_msg/ - incoming message, has type  [[messages][Message]]
-    - /account/ - account, has type [[accounts][Account]]
+    - /account/ - account, has type [[account][Account]]
     - /params/ - executor parameters, has type [[parameters][Parameters]]
     - /config/ - blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
 
   *_Output:_*
 
   On success, returns /Ok(acc1, trans)/, such that:
-   - /acc1/ - updated account, has type [[accounts][Account]]
+   - /acc1/ - updated account, has type [[account][Account]]
    - /trans/ - transaction, has type [[transaction][Transaction]]
   On error, returns error of the type /TransactionExecutor.TrExecutorError/
 
@@ -1666,10 +1668,7 @@
 
       # Execute Storage Phase
       storage_ph_res = storage_phase(account, acc_balance, tr, is_masterchain)
-      if storage_ph_res is Ok:
-          descr.storage_ph = storage_ph_res.storage_ph
-      else:
-          return ExecutorError.TrExecutorError()
+      descr.storage_ph = storage_ph_res.storage_ph
 
       # Why this is needed?
       if credit_first and (msg_balance > acc_balance):
@@ -1684,7 +1683,9 @@
           else:
               return ExecutorError.TrExecutorError()
 
-      # Why do it here, not at the end of the function?
+      # Both storage and credit phases are completed at this point.
+      # We need to update the last_paid field not to loose this
+      # information in case of some further errors showing up.
       account.last_paid = params.block_unixtime
 
       # Parameters to be passed into TVM
@@ -1713,8 +1714,7 @@
       actions = compute_ph_res.actions
       new_data = compute_ph_res.new_data
 
-      # Generated outbound messages to be sent into other
-      # accounts
+      # Generated outbound messages to be sent into other accounts
       out_msgs = []
 
       compute_gas_fees = descr.compute_ph.gas_fees
@@ -1807,7 +1807,7 @@
 
   *_Input:_*
     - /in_msg/ - incoming message, has type [[messages][Message]]
-    - /account/ - account, has type [[accounts][Account]]
+    - /account/ - account, has type [[account][Account]]
     - /params/ - executor parameters, has type [[parameters][Parameters]]
     - /config/ - blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
 
@@ -1839,10 +1839,7 @@
 
       # Execute Storage Phase
       storage_ph_res = storage_phase(account, acc_balance, tr, is_masterchain)
-      if storage_ph_res is Ok:
-          descr.storage_ph = storage_ph_res.storage_ph
-      else:
-          return ExecutorError.TrExecutorError()
+      descr.storage_ph = storage_ph_res.storage_ph
 
       if account.balance >= tr.total_fees:
           original_acc_balance = account.balance - tr.total_fees
@@ -1851,7 +1848,9 @@
 
       # Credit Phase is skipped for external messages
 
-      # Why do it here, not at the end of the function?
+      # Storage phase is completed at this point
+      # We need to update the last_paid field not to loose this
+      # information in case of some further errors showing up
       account.last_paid = params.block_unixtime
 
       # Parameters to be passed into TVM
@@ -1979,14 +1978,11 @@
 
    *_Output:_*
 
-   On success, returns the value:
+   This phase always succeeds. The return values may differ:
    /Ok(TrStoragePhase(collected, fee, status_change))/, such that:
      - /collected/ - the amount of coins withheld for the storage fee
      - /debt/ - if the balance was insufficient, the remaining debt of the account
      - /status_change/ - should the account be frozen or deleted afterwards
-
-   On   error,  returns   /TransactionExecutor.TrExecutorError()/,  no
-   variables are mutated in this case.
 
    *_Modifies_:*
    - /account/ - updates /due_payment/ and /status/ fields
@@ -1996,11 +1992,10 @@
 
    #+begin_src python
      def storage_phase(account, tr, msg_balance, acc_balance):
-         # Current transaction must have more recent timestamp
-         # than the latest payment timestamp. Otherwise, something
-         # is terribly wrong.
-         if tr.now < acc.last_paid:
-             return TransactionExecutor.TrExecutorError()
+         # It is assumed that the current transaction must have a more
+         # recent timestamp than the latest payment timestamp.
+         # Otherwise, something is terribly wrong.
+         assert (tr.now >= acc.last_paid)
 
          # The account does not occupy any space, so do not charge the fee
          if account == None:
@@ -2413,7 +2408,7 @@
 
    *_Input_:*
    - /tr/ - transaction being constructed, has type [[transaction][Transaction]]
-   - /account/ - account executing the message, has type [[accounts][Account]]
+   - /account/ - account executing the message, has type [[account][Account]]
    - /original_acc_balance/ - account balance after storage and credit phase, has type /Uint/
    - /acc_balance/ -the mutable copy of the original_acc_balance, has type /Uint/
    - /msg_remaining_balance/ - message balance without debt value if any, has type /Uint/
