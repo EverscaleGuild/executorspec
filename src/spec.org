@@ -1665,10 +1665,7 @@
               return ExecutorError.TrExecutorError()
 
       # Execute Storage Phase
-      storage_ph_res = storage_phase(account,
-                                     acc_balance,
-                                     tr,
-                                     is_masterchain)
+      storage_ph_res = storage_phase(account, acc_balance, tr, is_masterchain)
       if storage_ph_res is Ok:
           descr.storage_ph = storage_ph_res.storage_ph
       else:
@@ -1838,8 +1835,7 @@
       tr.total_fee = tr.total_fee + in_fwd_fee
 
       # Execute Storage Phase
-      storage_ph_res = storage_phase(
-          account, acc_balance, tr, is_masterchain, False)
+      storage_ph_res = storage_phase(account, acc_balance, tr, is_masterchain)
       if storage_ph_res is Ok:
           descr.storage_ph = storage_ph_res.storage_ph
       else:
@@ -1856,14 +1852,22 @@
       account.last_paid = params.block_unixtime
 
       # Parameters to be passed into TVM
-      smci = build_contract_info(acc_balance, account.address,
-                                 params.block_lt, lt, params.seed_block)
+      smci = build_contract_info(acc_balance,
+                                 account.address,
+                                 params.block_lt,
+                                 lt,
+                                 params.seed_block)
       # First element is the bottom of the stack
       stack = Stack([acc_balance, msg_balance, Cell(in_msg), in_msg.body, False])
 
       # Execute Compute Phase
-      compute_ph_res = compute_phase(in_msg, account, acc_balance, msg_balance,
-                                     params.state_libs, smci, stack,
+      compute_ph_res = compute_phase(in_msg,
+                                     account,
+                                     acc_balance,
+                                     msg_balance,
+                                     params.state_libs,
+                                     smci,
+                                     stack,
                                      is_masterchain)
 
       if compute_ph_res is Ok:
@@ -1879,9 +1883,14 @@
       tr.total_fee = tr.total_fee + compute_gas_fees
 
       if descr.compute_ph.success:
-          act_phase_res = action_phase(tr, account, original_acc_balance,
-                                       acc_balance, msg_balance, phase.gas_fees,
-                                       accounts, compute_ph_res.new_data)
+          act_phase_res = action_phase(tr,
+                                       account,
+                                       original_acc_balance,
+                                       acc_balance,
+                                       msg_balance,
+                                       phase.gas_fees,
+                                       accounts,
+                                       compute_ph_res.new_data)
           if act_phase_res is Ok:
               descr.action = act_phase_res.action_ph
               out_msgs = act_phase_res.msgs
@@ -2301,7 +2310,7 @@
     On failure, returns *Err*
 
     *_Modifies:_*
-    - /account/ - the field /stuff.storage.state/ gets updated by the state_init on success
+    - /account/ - the field /storage.state/ gets updated by the state_init on success
 
     #+begin_src python
       def try_activate_by_init_code_hash(account, state_init):
