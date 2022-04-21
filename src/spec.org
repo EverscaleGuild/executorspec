@@ -1688,8 +1688,11 @@
       account.last_paid = params.block_unixtime
 
       # Parameters to be passed into TVM
-      smci = build_contract_info(acc_balance, account.address,
-                                 params.block_lt, lt, params.seed_block)
+      smci = build_contract_info(acc_balance,
+                                 account.address,
+                                 params.block_lt,
+                                 lt,
+                                 params.seed_block)
       # First element is the bottom of the stack
       stack = Stack([acc_balance, msg_balance, Cell(in_msg), in_msg.body, False])
 
