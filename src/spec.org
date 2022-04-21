@@ -1647,124 +1647,139 @@
   - /account/
 
 #+begin_src python
-    def ExecuteInternalMessage(in_msg, account, params, config):
-        acc_balance = account.balance
-        msg_balance = in_msg.hdr.value
-        credit_first = not in_msg.hdr.bounce
-        lt = max(account.last_tr_time, max(params.last_tr_lt, in_msg.lt + 1))
-        tr = Transaction(account.account_id, account.status, lt, now(), in_msg)
-        descr = TransactionDescrOrdinary(credit_first: credit_first)
+  def ExecuteInternalMessage(in_msg, account, params, config):
+      acc_balance = account.balance
+      msg_balance = in_msg.hdr.value
+      credit_first = not in_msg.hdr.bounce
+      lt = max(account.last_tr_time, max(params.last_tr_lt, in_msg.lt + 1))
+      tr = Transaction(account.account_id, account.status, lt, now(), in_msg)
+      descr = TransactionDescrOrdinary(credit_first: credit_first)
 
-        # If the bounce flag is not set, execute the Credit Phase
-        # before Storage phase
-        if credit_first:
-            credit_ph_res = credit_phase(account, tr, msg_balance, acc_balance)
-            if credit_ph_res == Ok(credit_ph):
-                descr.credit_ph = credit_ph
-            else:
-                return ExecutorError.TrExecutorError()
+      # If the bounce flag is not set, execute the Credit Phase
+      # before Storage phase
+      if credit_first:
+          credit_ph_res = credit_phase(account, tr, msg_balance, acc_balance)
+          if credit_ph_res is Ok:
+              descr.credit_ph = credit_ph_res.credit_ph
+          else:
+              return ExecutorError.TrExecutorError()
 
-        # Execute Storage Phase
-        storage_ph_res = storage_phase(account, acc_balance, tr,
-                                       is_masterchain, False)
-        if storage_ph_res == Ok(storage_ph):
-            descr.storage_ph = storage_ph
-        else:
-            return ExecutorError.TrExecutorError()
+      # Execute Storage Phase
+      storage_ph_res = storage_phase(account,
+                                     acc_balance,
+                                     tr,
+                                     is_masterchain)
+      if storage_ph_res is Ok:
+          descr.storage_ph = storage_ph_res.storage_ph
+      else:
+          return ExecutorError.TrExecutorError()
 
-        # Why this is needed?
-        if credit_first and (msg_balance > acc_balance):
-            msg_balance = acc_balance
+      # Why this is needed?
+      if credit_first and (msg_balance > acc_balance):
+          msg_balance = acc_balance
 
-        original_acc_balance = account.balance - tr.total_fees
+      original_acc_balance = account.balance - tr.total_fees
 
-        if not credit_first:
-            credit_ph_res = credit_phase(account, tr, msg_balance, acc_balance)
-            if credit_ph_res == Ok(credit_ph):
-                descr.credit_ph = credit_ph
-            else:
-                return ExecutorError.TrExecutorError()
+      if not credit_first:
+          credit_ph_res = credit_phase(account, tr, msg_balance, acc_balance)
+          if credit_ph_res is Ok:
+              descr.credit_ph = credit_ph_res.credit_ph
+          else:
+              return ExecutorError.TrExecutorError()
 
-        # Why do it here, not at the end of the function?
-        account.last_paid = params.block_unixtime
+      # Why do it here, not at the end of the function?
+      account.last_paid = params.block_unixtime
 
-        # Parameters to be passed into TVM?
-        smci = build_contract_info(acc_balance, account.address,
-                                   params.block_lt, lt, params.seed_block)
-        # First element is the bottom of the stack
-        stack = Stack([acc_balance, msg_balance, Cell(in_msg), in_msg.body, False])
+      # Parameters to be passed into TVM
+      smci = build_contract_info(acc_balance, account.address,
+                                 params.block_lt, lt, params.seed_block)
+      # First element is the bottom of the stack
+      stack = Stack([acc_balance, msg_balance, Cell(in_msg), in_msg.body, False])
 
-        # Execute Compute Phase
-        compute_ph_res = compute_phase(in_msg, account, acc_balance, msg_balance,
-                                       params.state_libs, smci, stack,
-                                       is_masterchain, False, params.debug)
+      # Execute Compute Phase
+      compute_ph_res = compute_phase(in_msg,
+                                     account,
+                                     acc_balance,
+                                     msg_balance,
+                                     params.state_libs,
+                                     smci,
+                                     stack,
+                                     is_masterchain)
 
-        if not (compute_ph_res is Ok):
-            return ExecutorError.TrExecutorError()
+      if not (compute_ph_res is Ok):
+          return ExecutorError.TrExecutorError()
 
-        descr.compute_ph = compute_ph_res.compute_ph
-        actions = compute_ph_res.actions
-        new_data = compute_ph_res.new_data
+      descr.compute_ph = compute_ph_res.compute_ph
+      actions = compute_ph_res.actions
+      new_data = compute_ph_res.new_data
 
-        # Generated outbound messages to be sent into other
-        # accounts
-        out_msgs = []
+      # Generated outbound messages to be sent into other
+      # accounts
+      out_msgs = []
 
-        compute_gas_fees = descr.compute_ph.gas_fees
-        tr.total_fee = tr.total_fee + compute_gas_fees
+      compute_gas_fees = descr.compute_ph.gas_fees
+      tr.total_fee = tr.total_fee + compute_gas_fees
 
-        if descr.compute_ph.success:
-            act_phase_res = action_phase(tr, account, original_acc_balance,
-                                         acc_balance, msg_balance, phase.gas_fees,
-                                         actions, new_data)
-            if act_phase_res is Ok:
-                descr.action = act_phase_res.action_ph
-                out_msgs = act_phase_res.msgs
-            else:
-                return ExecutorError.TrExecutorError()
+      if descr.compute_ph.success:
+          act_phase_res = action_phase(tr,
+                                       account,
+                                       original_acc_balance,
+                                       acc_balance,
+                                       msg_balance,
+                                       phase.gas_fees,
+                                       actions,
+                                       new_data)
+          if act_phase_res is Ok:
+              descr.action = act_phase_res.action_ph
+              out_msgs = act_phase_res.msgs
+          else:
+              return ExecutorError.TrExecutorError()
 
-        if descr.action != None:
-            if descr.action.status_change == AccStatusChange.Deleted:
-                account = Account()
-                descr.destroyed = True
-            descr.aborted = not descr.action.success
-        else:
-            descr.aborted = True
+      if descr.action != None:
+          if descr.action.status_change == AccStatusChange.Deleted:
+              account = Account()
+              descr.destroyed = True
+          descr.aborted = not descr.action.success
+      else:
+          descr.aborted = True
 
-        # If the Action Phase failed, and the incoming message allows
-        # bounce answer, execute the Bounce Phase
-        if (descr.aborted == True) and (in_msg.hdr.bounce = True):
-            if descr.compute_ph is Vm:
-                bounce_ph_res = \
-                    bounce_phase(msg_balance, acc_balance, compute_gas_fees,
-                                 tr, my_addr)
-                if bounce_ph_res == Ok(bounce_ph, bounce_msg):
-                    descr.bounce = bounce_ph
-                    if (bounce_msg != None):
-                        out_msgs = out_msgs + [bounce_msg]
-                else:
-                    return ExecutorError.TrExecutorError()
-            if descr.bounce is Ok:
-                acc_balance = original_acc_balance
-                if account.status == AccountStatus.AccStateUninit and \
-                   acc_balance == 0:
-                    account = Account()
-                else:
-                    if account.is_none() and acc_balance != 0:
-                        account = Account.uninit(is_msg.hdr.dst, 0, last_paid,
-                                                 acc_balance)
+      # If the Action Phase failed, and the incoming message allows
+      # bounce answer, execute the Bounce Phase
+      if (descr.aborted == True) and (in_msg.hdr.bounce = True):
+          if descr.compute_ph is Vm:
+              bounce_ph_res = \
+                  bounce_phase(msg_balance,
+                               acc_balance,
+                               compute_gas_fees,
+                               tr,
+                               my_addr)
+              if bounce_ph_res is Ok:
+                  descr.bounce = bounce_ph_res.bounce_ph
+                  if (bounce_ph_res.bounce_msg != None):
+                      out_msgs = out_msgs + [bounce_ph_res.bounce_msg]
+              else:
+                  return ExecutorError.TrExecutorError()
+          if descr.bounce is Ok:
+              acc_balance = original_acc_balance
+              if account.status == AccountStatus.AccStateUninit and \
+                 acc_balance == 0:
+                  account = Account()
+              else:
+                  if account.is_none() and acc_balance != 0:
+                      account = Account.uninit(is_msg.hdr.dst, 0, last_paid,
+                                               acc_balance)
 
-        if account.status() == AccountStatus.AccStateUninit and acc_balance == 0:
-            account = Account()
+      if account.status() == AccountStatus.AccStateUninit and acc_balance == 0:
+          account = Account()
 
-        tr.acc_end_status = account.status
-        account.balance = acc_balance
-        params.last_tr_lt = lt
+      tr.acc_end_status = account.status
+      account.balance = acc_balance
+      params.last_tr_lt = lt
 
-        upd_lt = add_messages(tr, out_msgs, params.last_tr_lt)
-        account.last_tr_time = upd_lt
-        tr.descr = descr
-        return Ok(tr, account)
+      upd_lt = add_messages(tr, out_msgs, params.last_tr_lt)
+      account.last_tr_time = upd_lt
+      tr.descr = descr
+      return Ok(tr, account)
  #+end_src
 
  The function /add_messages/ assigns  the proper logical timestamp for
@@ -1825,8 +1840,8 @@
       # Execute Storage Phase
       storage_ph_res = storage_phase(
           account, acc_balance, tr, is_masterchain, False)
-      if storage_ph_res == Ok(storage_ph):
-          descr.storage_ph = storage_ph
+      if storage_ph_res is Ok:
+          descr.storage_ph = storage_ph_res.storage_ph
       else:
           return ExecutorError.TrExecutorError()
 
@@ -1851,8 +1866,8 @@
                                      params.state_libs, smci, stack,
                                      is_masterchain)
 
-      if compute_ph_res == Ok(compute_ph, new_data):
-          descr.compute_ph = compute_ph
+      if compute_ph_res is Ok:
+          descr.compute_ph = compute_ph_res.compute_ph
       else:
           return ExecutorError.TrExecutorError()
 
@@ -1866,10 +1881,10 @@
       if descr.compute_ph.success:
           act_phase_res = action_phase(tr, account, original_acc_balance,
                                        acc_balance, msg_balance, phase.gas_fees,
-                                       accounts, new_data)
-          if act_phase_res == Ok(action_ph, msgs):
-              descr.action = action_ph
-              out_msgs = msgs
+                                       accounts, compute_ph_res.new_data)
+          if act_phase_res is Ok:
+              descr.action = act_phase_res.action_ph
+              out_msgs = act_phase_res.msgs
           else:
               return ExecutorError.TrExecutorError()
 
@@ -1976,7 +1991,7 @@
              return TransactionExecutor.TrExecutorError()
 
          # The account does not occupy any space, so do not charge the fee
-         if account.stuff == None:
+         if account == None:
              return Ok(TrStoragePhase())
 
          fee, account.storage_info = calc_storage_fee(account.storage_info,
@@ -2118,7 +2133,7 @@
 
         result = vm.execute()
 
-        if result != Ok:
+        if not (result is Ok):
             vm_phase.exit_code = result.custom_code
         else:
             vm_phase.exit_code = result.exit_code
@@ -2261,7 +2276,7 @@
                   return ComputeSkipReason.NoState
           elif account.status == AccountStatus.AccStateFrozen:
               if acc_balance != 0 and in_msg.state_init != None:
-                  if account.try_activate_by_init_code_hash(in_msg.state_init) == Ok:
+                  if account.try_activate_by_init_code_hash(in_msg.state_init) != None:
                       return None
                   else:
                       return ComputeSkipReason.BadState
@@ -2290,29 +2305,28 @@
 
     #+begin_src python
       def try_activate_by_init_code_hash(account, state_init):
-          if account.stuff == None:
+          if account == None:
               return Err
 
-          stuff = account.stuff
           new_state = None
 
-          if stuff.storage.state == AccountState.AccountUninit:
-              if hash(state_init) == stuff.addr.address:
+          if account.storage.state == AccountState.AccountUninit:
+              if hash(state_init) == account.addr.address:
                   new_state = AccountState.AccountActive(
                       hash(state_init.code), state_init
                   )
               else:
                   return Err
-          elif stuff.storage.state == \
+          elif account.storage.state == \
                AccountState.AccountFrozen(init_code_hash, state_init_hash):
               if state_init_hash == hash(state_init):
                   new_state = AccountState.AccountActive(init_code_hash, state_init)
               else:
                   return Err
           else:
-              new_state = stuff.storage.state
+              new_state = account.storage.state
 
-          account.stuff.storage.state = new_state
+          account.storage.state = new_state
           return Ok
     #+end_src
 
@@ -2436,28 +2450,33 @@
        address = acc_copy.address
 
        for action in actions:
-           if action == OutAction.SendMsg(mode, msg):
-               if (mode & SENDMSG_ALL_BALANCE != 0):
-                   out_msgs_tmp.push(msg)
+           if action is OutAction.SendMsg:
+               if action.mode & SENDMSG_ALL_BALANCE:
+                   out_msgs_tmp.push((action.mode, action.out_msg))
                    continue
-               result = outmsg_action_handler(phase, mode, out_msg,
+               result = outmsg_action_handler(phase,
+                                              action.mode,
+                                              action.out_msg,
                                               acc_remaining_balance,
                                               msg_remaining_balance,
                                               compute_phase_fees,
-                                              config, address,
+                                              config,
+                                              address,
                                               total_reserved_value,
                                               account_deleted)
-               if result == Ok:
+               if result is Ok:
                    phase.msgs_created += 1
-                   out_msgs_tmp.push(mode, out_msg)
+                   out_msgs_tmp.push((action.mode, action.out_msg))
                else:
                    return result
-           elif action == OutAction.ReserveCurrency(mode, value):
-               result = reserve_action_handler(mode, value, original_acc_balance,
+           elif action is OutAction.ReserveCurrency:
+               result = reserve_action_handler(action.mode,
+                                               action.value,
+                                               original_acc_balance,
                                                acc_remaining_balance)
-               if result == Ok(reserved_value):
+               if result is Ok:
                    phase.spec_actions += 1
-                   total_reserved_value += reserved_value
+                   total_reserved_value += result.reserved_value
                else:
                    phase.valid = True
                    phase.result_code = result
@@ -2648,7 +2667,7 @@
              phase.tot_msg_size.cells() > MAX_MSG_CELLS:
               return Err(RESULT_CODE_INVALID_BALANCE)
 
-          if (mode and (SENDMSG_ALL_BALANCE or SENDMSG_REMAINING_MSG_BALANCE)):
+          if mode and (SENDMSG_ALL_BALANCE or SENDMSG_REMAINING_MSG_BALANCE):
               msg_balance = 0
 
           return Ok(result_value)
@@ -2684,7 +2703,7 @@
           if mode and RESERVE_PLUS_ORIG:
               if mode and RESERVE_REVERSE:
                   reserved = orig_acc_balance
-                  if (reserved < val):
+                  if reserved < val:
                       return Err(RESULT_CODE_UNSUPPORTED)
                   reserved -= val
               else:
@@ -2699,7 +2718,7 @@
               reserved = min(reserved, acc_remaining_balance)
 
           remaining = acc_remaining_balance
-          if (remaining < reserved):
+          if remaining < reserved:
               return Err(RESULT_CODE_NOT_ENOUGH_GRAMS)
 
           remaining -= reserved
