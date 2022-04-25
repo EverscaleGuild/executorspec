@@ -132,6 +132,8 @@
   observers.   They foster  communication between  smart-contracts and
   off-chain programs.
 
+  The platform overall architecture is depicted on Fig. [[fig:general]]
+
    #+CAPTION: EverScale blockchain high-level architecture
    #+NAME:   fig:general
    [[./img/general.svg]]
@@ -161,7 +163,7 @@
 * Transaction Executor Module
 
   In this section, we go into the technical details of Transaction Executor
-  Module. The source code of the module is available
+  module. The source code of the module is available
   [[https://github.com/tonlabs/ton-labs-executor/tree/a28bde3e65dd35573d34e32aa4477d60162b5338][here]].
 
 
@@ -177,7 +179,7 @@
 
 ** Inputs and Outputs
 
-  The principal architecture of the module is depicted on Fig.[[fig:trans_exec]]
+  The principal architecture of the module is depicted on Fig. [[fig:trans_exec]]
 
    #+CAPTION: Transaction Executor
    #+NAME:   fig:trans_exec
@@ -244,8 +246,8 @@
    entity is an /account/. There, an account is uniquely determined by
    its  /account  identifier/.   Within  the whole  blockchain  -  the
    collection of  workchains - the  account is uniquely  determined by
-   its /address/: it is when we  put together the workchain id and its
-   account id.
+   its /address/: it is when we  put together the workchain identifier and its
+   account identifier. See Fig. [[fig:account]].
 
    The account record stores account address, account balance and maybe
    a smart-contract  state. The  latter might  be missing,  and yet  the
@@ -263,29 +265,34 @@
    In a  process of its operation,  an account might become  frozen or
    deleted. This  is usually  a result  of account  having a  debt, or
    executing a  special instruction.   We depict  the life-cycle  of an
-   account on Fig.[[account_lifecycle]].
+   account on Fig. [[fig:account_lifecycle]].
 
-   <<account_lifecycle>>
-   #+CAPTION: Account Lifecycle
-   #+begin_src plantuml :file ./img/my-diagram.svg
-      hide empty description
-      left to right direction
-      title Account Lifecycle
-      [*] --> Uninit : send\nvalue
-      ' Uninit : Initial state of the account
-      Uninit --> Active : initialize
-      Uninit -[#DD00AA]-> Frozen : due\npayment
-      '  Active : Normal message processing
-      Active -[#blue]-> Frozen : due\npayment
-      '  Frozen : Unfreeze message only
-      Frozen -[#blue]-> Active : unfreeze
-      Frozen -[#DD00AA]-> Uninit : unfreeze
-      Frozen --> [*] : deleted
+   #+begin_src plantuml :results silent :file "../img/account_lifecycle.svg"
+     skinparam backgroundColor transparent
+     hide empty description
+     left to right direction
+     [*] -> Nonexistent
+     Nonexistent --> Uninit : send\nvalue
+     ' Uninit : Initial state of the account
+     Uninit --> Active : initialize
+     Uninit -[#DD00AA]-> Frozen : due\npayment
+     '  Active : Normal message processing
+     Active -[#blue]-> Frozen : due\npayment
+     '  Frozen : Unfreeze message only
+     Frozen -[#blue]-> Active : unfreeze
+     Frozen -[#DD00AA]-> Uninit : unfreeze
+     Frozen --> Nonexistent : delete
    #+end_src
 
-   In the  beginning, the  account remains in  an /Uninit/  state.  In
-   that state  it is not very  useful: it may only  receive coins from
-   the incoming messages.
+   #+CAPTION: Account Lifecycle
+   #+NAME: fig:account_lifecycle
+   [[./img/account_lifecycle.svg]]
+
+   In the beginning,  the account remains in an  /Nonexistent/ state -
+   it stores no funds and no data.  Only after you send some value to
+   the account, it  switches to the /Uninit/ state.  In  that state it
+   is not yet very useful: it may only receive coins from the incoming
+   messages.
 
    The  account   might  be   initialized  with  a   message  carrying
    /StateInit/ data blob containing  smart-contract code and data.  In
@@ -296,7 +303,8 @@
    Due  to storage  fees, the  account balance  might become  negative
    leading to /Frozen/ state and even being deleted afterwards. The other
    option for deletion is if the smart-contract itself execute a special
-   action.
+   action. After the deletion, the account state is switched back to
+   /Nonexistent/ state.
 
 *** Account Structure Definition
 
@@ -327,7 +335,7 @@
 
     The location of an account in the blockchain is represented as a two-value
     structure: the workchain number and the account identifier. This location
-    structure is called an address.
+    structure is called an /account address/.
 
     Addresses are encoded using the following structure:
 
@@ -406,7 +414,7 @@
     \\
     - Type /Grams/ denotes a set of natural numbers $\{0, ..., 2^{256}\}$,
       equipped with $\oplus$ and $\ominus$ operators, such that:
-      $$a \oplus b = a + b \,\, \boldsymbol{mod} \,\, 2^{256}$$
+      $$a \oplus b = (a + b) \,\, \boldsymbol{mod} \,\, 2^{256}$$
       $$a \ominus b = \boldsymbol{max}(a - b, 0)$$
       Here, $+$ and $-$ operators are standard addition and subtraction operators
       in a set of integers $\mathbb{Z}$
@@ -419,9 +427,9 @@
     |--------------+-----------------------------------------|
     | Fields       | Description                             |
     |--------------+-----------------------------------------|
-    | cells        | number of cells occupied by the account |
-    | bits         | number of bits occupied by the account  |
-    | public_cells | the field is not used                   |
+    | cells        | Number of cells occupied by the account |
+    | bits         | Number of bits occupied by the account  |
+    | public_cells | Field is not used                       |
 
     To store the data  in a tree-like form, it is  encoded as a series
     of interlinked cells. This data  structure also consume some space
@@ -480,7 +488,7 @@
       }
     #+end_src
 
-    The life cycle of an account is depicted on Fig.[[account_lifecycle]].
+    The life cycle of an account is depicted on Fig. [[fig:account_lifecycle]].
 
     Let us clarify the fields of enumeration items.
 
@@ -529,10 +537,11 @@
 
 ** Messages
    <<messages>>
-   Smart-contracts interact with each other by sending and receiving /messages/.
+   Messages are the main mechanism of communication between non-blockchain
+   applications and smart-contracts.
 
-   A message is a data block that encodes one of the following:
-   - desired function call at a destination  smart-contract,  together  with  an  amount  of  coins attached to the call.
+   Technically, a message is a data structure encoding one of the following:
+   - desired function call at a destination  smart-contract,  optionally including some  coins, attached to the call.
    - event log record to signal external observers about some significant state being reached
 
    We distinguish 3 types [fn:1] of messages:
@@ -549,6 +558,7 @@
          init_to_ref: Option<bool>,
      }
    #+end_src
+
 
    The last two  fields /body_to_ref/ and /init_to_ref/  are used only
    for serialization purpose, hence not considered in this document.
@@ -772,7 +782,7 @@
 
 ** Transaction Executor
 
-   Transaction Executor Module is responsible for applying the incoming
+   Transaction Executor module is responsible for applying the incoming
    message to the destination account, using the supplied parameters.
    In case of success, Transaction Executor outputs the newly created transaction and
    the updated account.
@@ -1133,7 +1143,7 @@
     #+end_src
     \\
     \\
-    - /config_addr/   -  is the configuration smart-contract account id (the workchain id equals -1)
+    - /config_addr/   -  is the configuration smart-contract account identifier (the workchain identifier equals -1)
     - /config_params/ -  dictionary with parameters; dictionary keys refers
       to an option number. We will not go deep into those options, because
       they are not relevant to our work.
