@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="308px" preserveAspectRatio="none" style="width:609px;height:308px;background:#00000000;" version="1.1" viewBox="0 0 609 308" width="609px" zoomAndPan="magnify"><defs><filter height="300%" id="f1euiw1950dyhe" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><ellipse cx="53.5" cy="209.5659" fill="#000000" filter="url(#f1euiw1950dyhe)" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><rect fill="#FEFECE" filter="url(#f1euiw1950dyhe)" height="40" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="93" x="7" y="254.5659"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="83" x="12" y="279.4126">Nonexistent</text><rect fill="#FEFECE" filter="url(#f1euiw1950dyhe)" height="40" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="50" x="196" y="152.5659"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="39" x="201.5" y="177.4126">Uninit</text><rect fill="#FEFECE" filter="url(#f1euiw1950dyhe)" height="40" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="51" x="363" y="21.5659"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="41" x="368" y="46.4126">Active</text><rect fill="#FEFECE" filter="url(#f1euiw1950dyhe)" height="40" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="58" x="537" y="108.5659"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="48" x="542" y="133.4126">Frozen</text><!--MD5=[d52c4fb2fbc670c1e06b764b3c3953be]
+link *start to Nonexistent--><path d="M53.5,219.7459 C53.5,229.6159 53.5,239.4859 53.5,249.3459 " fill="none" id="*start-to-Nonexistent" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="53.5,254.5059,57.5,245.5059,53.5,249.5059,49.5,245.5059,53.5,254.5059" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[58be17c0c71d84913d4aa5173b186378]
+link Nonexistent to Uninit--><path d="M87.2,254.4159 C117.6,235.6759 162.44,208.0359 191.44,190.1659 " fill="none" id="Nonexistent-to-Uninit" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="195.95,187.3859,186.1894,188.7017,191.6932,190.0088,190.386,195.5126,195.95,187.3859" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="31" x="132.5" y="188.6328">send</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="34" x="131" y="203.7656">value</text><!--MD5=[631d167be21f7cce7ef96614f8e1fa37]
+link Uninit to Active--><path d="M234.32,152.3359 C244.21,137.2759 259.2,116.9259 276,102.5659 C300.85,81.3359 334.27,64.2459 358.03,53.6159 " fill="none" id="Uninit-to-Active" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="362.64,51.5859,352.7912,51.5688,358.0674,53.6087,356.0276,58.8849,362.64,51.5859" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="51" x="277" y="64.6328">initialize</text><!--MD5=[b6cea4af27876653d6d67ffe374f6b0b]
+link Uninit to Frozen--><path d="M246.12,169.4759 C306.16,161.7659 462.44,141.7259 531.43,132.8759 " fill="none" id="Uninit-to-Frozen" style="stroke:#DD00AA;stroke-width:1.0;"/><polygon fill="#DD00AA" points="536.64,132.2059,527.2003,129.3966,531.6815,132.8489,528.2292,137.3302,536.64,132.2059" style="stroke:#DD00AA;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="24" x="376.5" y="128.6328">due</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="57" x="360" y="143.7656">payment</text><!--MD5=[03a3bd8385845c47c16a686663568249]
+link Frozen to Uninit--><path d="M536.78,139.5759 C527.35,143.1759 516.75,147.1259 507,150.5659 C467.76,164.3959 459.09,173.0359 418,179.5659 C392.1,183.6759 385.21,180.2359 359,179.5659 C321.79,178.6159 278.96,176.2159 251.23,174.4959 " fill="none" id="Frozen-to-Uninit" style="stroke:#DD00AA;stroke-width:1.0;"/><polygon fill="#DD00AA" points="246.24,174.1759,254.9705,178.7342,251.2301,174.4905,255.4738,170.7501,246.24,174.1759" style="stroke:#DD00AA;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="56" x="360.5" y="175.6328">unfreeze</text><!--MD5=[cf10213fff88d73eaad329e62384e7da]
+link Active to Frozen--><path d="M414.11,38.3759 C439.11,36.3459 478.15,36.5759 507,52.5659 C527.57,63.9659 543.13,86.0259 552.94,103.4559 " fill="none" id="Active-to-Frozen" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="555.55,108.2359,554.7519,98.4194,553.1557,103.8464,547.7287,102.2503,555.55,108.2359" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="24" x="465.5" y="19.6328">due</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="57" x="449" y="34.7656">payment</text><!--MD5=[a9172b1635ea7f98efccaca92c309a0a]
+link Frozen to Active--><path d="M536.59,117.4859 C512.57,107.8159 477.46,92.9559 448,77.5659 C438.19,72.4459 427.8,66.3059 418.55,60.5559 " fill="none" id="Frozen-to-Active" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="414.1,57.7759,419.5922,65.9512,418.3336,60.4362,423.8486,59.1776,414.1,57.7759" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="56" x="449.5" y="73.6328">unfreeze</text><!--MD5=[0647e5c58b2f6290031b65049bbe2e82]
+link Frozen to Nonexistent--><path d="M547.59,148.7059 C536.95,159.7559 522.45,172.7559 507,180.5659 C372.54,248.5059 191.9,267.3559 105.15,272.5759 " fill="none" id="Frozen-to-Nonexistent" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="100.08,272.8659,109.3034,276.3197,105.071,272.5665,108.8243,268.3341,100.08,272.8659" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="40" x="282.5" y="237.6328">delete</text><!--MD5=[03705162cd7323cf52c34f01bb25991d]
+@startuml
+skinparam backgroundColor transparent
+hide empty description
+left to right direction
+[*] -> Nonexistent
+Nonexistent - -> Uninit : send\nvalue
+' Uninit : Initial state of the account
+Uninit - -> Active : initialize
+Uninit -[#DD00AA]-> Frozen : due\npayment
+'  Active : Normal message processing
+Active -[#blue]-> Frozen : due\npayment
+'  Frozen : Unfreeze message only
+Frozen -[#blue]-> Active : unfreeze
+Frozen -[#DD00AA]-> Uninit : unfreeze
+Frozen - -> Nonexistent : delete
+@enduml
+
+@startuml
+skinparam backgroundColor transparent
+hide empty description
+left to right direction
+[*] -> Nonexistent
+Nonexistent - -> Uninit : send\nvalue
+Uninit - -> Active : initialize
+Uninit -[#DD00AA]-> Frozen : due\npayment
+Active -[#blue]-> Frozen : due\npayment
+Frozen -[#blue]-> Active : unfreeze
+Frozen -[#DD00AA]-> Uninit : unfreeze
+Frozen - -> Nonexistent : delete
+@enduml
+
+PlantUML version 1.2022.0(Tue Jan 11 19:16:42 MSK 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
