@@ -10,12 +10,12 @@
   node. It applies incoming messages to accounts, sealing the end result
   of this operation into a block in the form of a transaction object.
 
-  The Executor algorithms   determine several   critical   aspects   of
+  The Transaction Executor algorithms   determine several   critical   aspects   of
   smart-contracts behavior, such as:
   - How a balance of an account is affected after the message gets processed
   - What outbound messages will be generated as a result
   - Should the account be frozen or deleted?
-  - What fees should be conducted from the accounts balance
+  - What fees should be charged from the accounts balance
 
   To be able to rigorously reason about a smart-contract behavior, it is
   important to construct the accurate  model of this module, explain the
@@ -32,10 +32,10 @@
    the explanation part and the specification part.
 
    The explanation  part is done  by providing extensive  comments for
-   data structures used through-out  the Executor. The data structures
+   data structures used through-out  the Transaction Executor. The data structures
    are presented as  Rust code snippets, taken from  the original Node
    code.   Sometimes,  we  intentionally  omit details  that  are  not
-   relevant  to  the Executor,  requiring  much  wider context  to  be
+   relevant  to  the Transaction Executor,  requiring  much  wider context  to  be
    explained.
 
    The  specification  part  is  presented  in  two  flavors.  When  the
@@ -56,7 +56,7 @@
 ** Pseudo-code Semantics
 
    A few  words about  the pseudo-code  language we  use to  define the
-   behavior of the Executor parts.
+   behavior of the Transaction Executor parts.
 
    The language  used is Python-like, with nearly intuitive semantics.
 
@@ -132,8 +132,7 @@
   observers.   They foster  communication between  smart-contracts and
   off-chain programs.
 
-   #+CAPTION: EverScale Blockchain High-Level Architecture. The following
-   #+CAPTION: objects depicted here: external message m1,internal messages m2 and m2', event m3.
+   #+CAPTION: EverScale blockchain high-level architecture
    #+NAME:   fig:general
    [[./img/general.svg]]
 
@@ -172,7 +171,7 @@
   unfortunate.  In  its current form,  it feels like the  object being
   executed  is a  transaction.  This  is not  true. Transaction  is an
   /outcome/ of executing a message on a smart-contract state using the
-  Executor logic. Hence, it is the message that is being executed, not
+  Transaction Executor logic. Hence, it is the message that is being executed, not
   the transaction.  Nevertheless, we stick  with the original name not
   to confuse developers too much.
 
@@ -225,7 +224,7 @@
 ** Hashing Algorithm
    <<hashing>>
 
-   Executor uses  hashing in  several places  to compactly  store data
+   Transaction Executor uses  hashing in  several places  to compactly  store data
    structures fingerprints. It  is done in two steps.  First, the data
    structure gets  converted into  a tree-like  form.  Then, a special
    hashing algorithm is applied to  that tree. The basic hash function
@@ -465,7 +464,7 @@
      <<account_state>>
 
      The account state defines the mode of operation for the account, during
-     the message being executed for that account. The Executor logic vary
+     the message being executed for that account. The Transaction Executor logic vary
      greatly depending of what is the current account state is.
 
      The account state may have additional data fields. See the enumeration
@@ -609,7 +608,7 @@
    | created_at   | Message creation time in Epoch                             |
 
    Some clarifications:
-   - /bounce/ flag regulates how the message processing error should be handled by Executor
+   - /bounce/ flag regulates how the message processing error should be handled by Transaction Executor
    - /bounced/ flag is set when the message itself was auto-generated as a result of an error.
      If the message with /bounced/ flag leads to an error itself, the next bounced message
      will not be generated.
@@ -673,7 +672,7 @@
      }
    #+end_src
 
-   - Executor automatically assigns the source address /src/ to be equal to
+   - Transaction Executor automatically assigns the source address /src/ to be equal to
      the smart-contract address emitting the event.
 
    - The destination address /dst/ may contain any identifier. It is included
@@ -687,7 +686,7 @@
 ** Parameters
    <<parameters>>
 
-   Besides incoming  message and  account, Executor  has to  have some
+   Besides incoming  message and  account, Transaction Executor  has to  have some
    external   information  regarding   the   current  blockchain   and
    non-blockchain state to support the TVM capabilities.  For example,
    it   has   to  know   the   current   time   to  provide   it   for
@@ -729,7 +728,7 @@
    into   the   Masterchain.  From   that   point,   it  stays   there
    forever [fn:4]
 
-   Transaction is an  output of the Executor, so we  have to examine it
+   Transaction is an  output of the Transaction Executor, so we  have to examine it
    more closely.
 
    #+NAME: TransactionStruct
@@ -771,11 +770,11 @@
    |                 |                                                              |
    |-----------------+--------------------------------------------------------------|
 
-** Executor
+** Transaction Executor
 
    Transaction Executor Module is responsible for applying the incoming
    message to the destination account, using the supplied parameters.
-   In case of success, Executor outputs the newly created transaction and
+   In case of success, Transaction Executor outputs the newly created transaction and
    the updated account.
 
    The      main      entry       point      is      the      function
@@ -792,7 +791,7 @@
    but there are some nuances.
 
    Let us warn you that the phase is not just an implementation detail
-   of the  Executor internals  that may  be easily  discarded. Message
+   of the  Transaction Executor internals  that may  be easily  discarded. Message
    execution   phases  are   a  part   of  EverScale   smart-contracts
    programming architecture.  It is assumed that you have a good grasp
    on it, to be able to do proper troubleshooting in case something is
@@ -802,19 +801,19 @@
    This document aims to support  programmers in their strive for this
    knowledge.
 
-   #+CAPTION: Executor Message Processing General Scheme
+   #+CAPTION: Transaction Executor Message Processing General Scheme
    #+NAME:   fig:phases
    [[./img/phases.svg]]
 
 
-*** Executor Types
+*** Transaction Executor Types
 
     There are several  type of messages in  EverScale. Besides already
     mentioned  ordinary messages,  there are  also a  special type  of
     messages  that  is a  part  of  a  wider protocol.   For  example,
     TickTock messages, SplitMerge messages, etc.
 
-    For each type  of messages, there exists a  separate Executor.  In
+    For each type  of messages, there exists a  separate Transaction Executor.  In
     this work, we consider  only the OrdinaryTransactionExecutor, that
     is                            defined                           in
     [[https://github.com/tonlabs/ton-labs-executor/blob/a28bde3e65dd35573d34e32aa4477d60162b5338/src/ordinary_transaction.rs][ordinary_transaction.rs]].
@@ -836,7 +835,7 @@
    | self         | Reference to the object calling the function              |
    | in_msg       | Incoming message [[messages]]                             |
    | account_root | Account record serialized in a form of Cells [[account]]  |
-   | params       | Executor parameters [[parameters]]                        |
+   | params       | Transaction Executor parameters [[parameters]]                        |
 
    As a result, the function  returns either Ok(Transaction) object or
    Err  value.  Please  note that  besides returning  the Transaction,
@@ -848,14 +847,14 @@
 *** BlockchainConfig parameters
 <<blockchain_config>>
 
-    Besides  ExecuteParams, the  Executor  relies on  BlockchainConfig
-    parameters.  They are passed  implicitly, at the Executor creation
+    Besides  ExecuteParams, the  Transaction Executor  relies on  BlockchainConfig
+    parameters.  They are passed  implicitly, at the Transaction Executor creation
     time.
 
     BlockchainConfig  is   a  set   of  globally   defined  parameters
     regulating  different nuances  of  blockchain  work. For  example,
     prices for smart-contract  execution, storage and a  set of system
-    contract addresses.  The latter  is needed  to let  Executor apply
+    contract addresses.  The latter  is needed  to let  Transaction Executor apply
     special logic for them.
 
     Those parameters are global to the network, and negotiated between
@@ -1097,7 +1096,7 @@
     - Allowed to process TickTock timer messages
 
     Upon executing a  message for one of those  special contracts, the
-    Executor has to apply all those conditions.
+    Transaction Executor has to apply all those conditions.
 
     | [[file:./img/excl2.png]]  | In this document, we mainly focus on ordinary accounts, leaving the special accounts processing details aside. |
 
@@ -1109,10 +1108,10 @@
     |---------------------------+-------------------------------------------------------------------------------------------|
     | Parameter                 | Description                                                                               |
     |---------------------------+-------------------------------------------------------------------------------------------|
-    | CapCreateStatsEnabled     | Allow update block statistics. Not related to Executor.                                   |
+    | CapCreateStatsEnabled     | Allow update block statistics. Not related to Transaction Executor.                                   |
     | CapBounceMsgBody          | Include the first 256 bits of the original message in the bounce message body.            |
     | CapReportVersion          | Include the blockchain version info into the block.                                       |
-    | CapShortDequeue           | Some special mode of managing outbound messages by the Validator. Not related to Executor |
+    | CapShortDequeue           | Some special mode of managing outbound messages by the Validator. Not related to Transaction Executor |
     | CapFastStorageStat        | Use alternative algorithm to update the structs AccountsStat.                             |
     | CapInitCodeHash           | Use the field init_code_hash in the AccountState.                                         |
     | CapOffHypercube           | Turn off Hypercube routing algorithm for message delivery                                 |
@@ -1145,7 +1144,7 @@
 
 
 *** Error Code Enumeration
-    When Executor  encounters an  error during message  processing, it
+    When Transaction Executor  encounters an  error during message  processing, it
     returns a special answer to  the calling side. The answer contains
     an error code.  Here we list  possible error codes and their short
     description. In our further discussion,  we rely on those mnemonic
@@ -1183,7 +1182,7 @@
 *** Transaction Description Object
     <<transaction_descriptor>>
 
-    During the incoming message processing, Executor constructs the report
+    During the incoming message processing, Transaction Executor constructs the report
     about the processing. This report has a special name - Transaction Description,
     and defined by the following structure:
 
@@ -1487,7 +1486,7 @@
    machine provides  the executor  with updated  contract state  and a
    list of actions to be further processed.
 
-   In our  context, an action refers  to an order for  the Executor to
+   In our  context, an action refers  to an order for  the Transaction Executor to
    perform  a  distinguished  stateful  act. It  could  be  sending  a
    message, changing  the smart-contract's code or  reserving coins on
    the balance.
@@ -1604,6 +1603,10 @@
     - /trans/ - transaction, has type [[transaction][Transaction]]
 
   On error, returns error of the type /ExecutorError/
+
+  *_Modifies:_*
+  \\
+  None
 
   #+begin_src python
     def ExecuteMessage(in_msg, account, params, config):
@@ -2811,7 +2814,7 @@
 
 *** Financial Risks
 
-    The Executor is the only place in the Node that is responsible for
+    The Transaction Executor is the only place in the Node that is responsible for
     changing  the   account  balance.  Hence,  any   errors  in  related
     operations  lead to  tokens loss  for the  user.  We  identify the
     following financial risks for the module:
@@ -2835,7 +2838,7 @@
     It is of  utter importance to guarantee that  all produced correct
     messages  will   be  eventually   delivered  to   the  destination
     account. The delivery  process is complicated and  rely on several
-    node components. Here,  we identify risks related  to the Executor
+    node components. Here,  we identify risks related  to the Transaction Executor
     part of it:
     \\
     \\
@@ -2855,7 +2858,7 @@
 ** System Properties
 
    System properties are high-level general statements on the system behavior
-   that the Executor should obey to. A subset of those statements related to
+   that the Transaction Executor should obey to. A subset of those statements related to
    mitigating the main risks, identified in the previous section.
 
 
