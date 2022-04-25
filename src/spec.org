@@ -1420,14 +1420,14 @@
     1. /RESULT_CODE_UNKNOWN_OR_INVALID_ACTION/ reasons are:
        - Actions serialization error
        - SendMsg action has invalid flags, that is:
-         - The mutually exclusive flags are set: SENDMSG_REMAINING_MSG_BALANCE and SENDMSG_ALL_BALANCE
+         - The mutually exclusive flags are set: /SENDMSG_REMAINING_MSG_BALANCE/ and /SENDMSG_ALL_BALANCE/
          - Message was sent with an unknown flag [[sendmsg_flags]];
-         - The flag SENDMSG_DELETE_IF_EMPTY is set, but the flag SENDMSG_ALL_BALANCE isn't;
+         - The flag /SENDMSG_DELETE_IF_EMPTY/ is set, but the flag /SENDMSG_ALL_BALANCE/ isn't;
        - Reserve action has invalid flags
          - Unknown flag is set
-         - Flag RESERVE_PLUS_ORIG is set, but RESERVE_REVERSE isn't
+         - Flag /RESERVE_PLUS_ORIG/ is set, but /RESERVE_REVERSE/ isn't
     2. /RESULT_CODE_NOT_ENOUGH_GRAMS/ reasons are:
-       - For SendMsg action, the flag SENDMSG_REMAINING_MSG_BALANCE is set, but SENDMSG_PAY_FEE_SEPARATELY isn't
+       - For SendMsg action, the flag /SENDMSG_REMAINING_MSG_BALANCE/ is set, but /SENDMSG_PAY_FEE_SEPARATELY/ isn't
        - Message balance is insufficient to cover message delivery fees
        - Account balance is insufficient to cover all message delivery fees
 
@@ -1603,15 +1603,10 @@
     - /acc1/ - updated account, has type [[account][Account]]
     - /trans/ - transaction, has type [[transaction][Transaction]]
 
-  On error, returns error of the type /TransactionExecutor.TrExecutorError/
-
-  *_Modifies:_*
-  - /account/
+  On error, returns error of the type /ExecutorError/
 
   #+begin_src python
     def ExecuteMessage(in_msg, account, params, config):
-        if in_msg == None:
-            return ExecutorError.TrExecutorError()
         if in_msg.header is ExtOutMsgInfo:
             return ExecutorError.InvalidExtMessage
         if in_msg.header.dst == None:
@@ -1619,10 +1614,12 @@
         if in_msg.header is ExtInMessageHeader and account.balance == 0:
             return ExecutorError.NoFundsToImportMsg()
 
+        acc = account.clone()
+
         if in_msg.header is ExtInMsgInfo:
-            return ExecuteExternalMessage(in_msg, account, params, config)
+            return ExecuteExternalMessage(in_msg, acc, params, config)
         elif in_msg.header is IntMsgInfo:
-            return ExecuteInternalMessage(in_msg, account, params, config)
+            return ExecuteInternalMessage(in_msg, acc, params, config)
 
         return ExecutorError.TrExecutorError()
   #+end_src
@@ -2130,6 +2127,9 @@
         libs.push(state_libs)             # masterchain libraries
 
         smc_info.mycode = code
+
+        # Here, we initialize abstract TVM virtual machine.
+        # The exact behavior of this device is out of scope.
         vm = TVM(code)
         vm.smc_info = smc_info
         vm.config = config
@@ -2555,7 +2555,7 @@
 
     The SendMsg action handler  is responsible for generating messages
     to be sent.  It may fail due to several reasons. In this case, the
-    action phase get stopped,  unless the SENDMSG_IGNORE_ERROR flag is
+    action phase get stopped,  unless the /SENDMSG_IGNORE_ERROR/ flag is
     set.
 
     *_Input_:*
