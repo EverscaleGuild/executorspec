@@ -32,26 +32,27 @@
    the explanation part and the specification part.
 
    The explanation  part is done  by providing extensive  comments for
-   data structures used through-out  the Transaction Executor. The data structures
-   are presented as  Rust code snippets, taken from  the original Node
-   code.   Sometimes,  we  intentionally  omit details  that  are  not
-   relevant  to  the Transaction Executor,  requiring  much  wider context  to  be
-   explained.
+   data structures used through-out the Transaction Executor. The data
+   structures  are presented  as Rust  code snippets,  taken from  the
+   original Node code.  Sometimes,  we intentionally omit details that
+   are not relevant to the  Transaction Executor, requiring much wider
+   context to be explained.
 
-   The  specification  part  is  presented  in  two  flavors.  When  the
-   precision  is required,  we  describe the  behavior  by providing  the
-   pseudo-code  implementing   some  algorithm.  For more  general
-   properties, we formulate them  in a  form of  semi-formal statements
-   about the  system behavior.
+   The  specification part  is  presented in  two  flavors.  When  the
+   precision is  required, we describe  the behavior by  providing the
+   pseudo-code   implementing  some   algorithm.   For   more  general
+   properties, we formulate  them in a form  of semi-formal statements
+   about the system behavior.
 
-   By  comparison  to  the   program  implementation,  the  specification
-   pseudo-code  /overapproximates/  the  implementation by  throwing  away
-   non-relevant  parts of  the  logic, for  example: sophisticated  error
-   handling, non-interesting  parts of the state  being removed, introducing
-   reasonable assumptions that greatly simplifies the logic, etc.
+   By  comparison to  the  program  implementation, the  specification
+   pseudo-code /overapproximates/ the  implementation by throwing away
+   non-relevant parts  of the logic, for  example: sophisticated error
+   handling,  non-interesting  parts  of   the  state  being  removed,
+   introducing  reasonable  assumptions  that greatly  simplifies  the
+   logic, etc.
 
-   In other words,  the pseudo-code shows how  the system behaves
-   for its significant parts, putting away everything else.
+   In other  words, the pseudo-code  shows how the system  behaves for
+   its significant parts, putting away everything else.
 
 ** Pseudo-code Semantics
 
@@ -110,7 +111,7 @@
    some nuances or errors get discovered.
 
    We encourage the community members to submit pull requests or issues
-   using the following repo:
+   using the following repository:
 
    https://bitbucket.org/unboxedtype/executorspec/
 
@@ -210,7 +211,7 @@
    <<multicurrency>>
 
    The native  coin of EverScale  blockchain is called  /Ever/. However,
-   EverScale has an ablility to work with other types of coins.  While
+   EverScale has an ability to work with other types of coins.  While
    system payments like  gas and storage fees are made  only in Evers,
    the   other   value   transfers   may  contain   coins   of   other
    currencies.  This contrasts  with most  of other  blockchains where
@@ -333,11 +334,12 @@
 *** Account Address
     <<address>>
 
-    The location of an account in the blockchain is represented as a two-value
-    structure: the workchain number and the account identifier. This location
-    structure is called an /account address/.
+    The location of an account in EverScale blockchain is represented as a
+    two-value structure: the workchain number and the account identifier.
+    This structure is called an /account address/. Hereinafter, we just
+    call it /address/ for greater convenience.
 
-    Addresses are encoded using the following structure:
+    Addresses are defined as follows:
 
     #+begin_src rust
       pub enum MsgAddressInt {
@@ -471,9 +473,10 @@
 **** Account State
      <<account_state>>
 
-     The account state defines the mode of operation for the account, during
-     the message being executed for that account. The Transaction Executor logic vary
-     greatly depending of what is the current account state is.
+     The account state defines the  mode of operation for the account,
+     during  the   message  being  executed  for   that  account.  The
+     Transaction Executor logic vary greatly  depending of what is the
+     current account state is.
 
      The account state may have additional data fields. See the enumeration
      below.
@@ -492,24 +495,27 @@
 
     Let us clarify the fields of enumeration items.
 
-    For the  /AccountActive/, the  value /init_code_hash/  defines the
-    hash of the  field /state_init.code/ that was used at  the moment of
-    account  initialization.  During  the initialization,  this  value
-    should be equal to a hash of code and data of a smart-contract for
-    this account.
+    For the  /AccountActive/, the  value /state_init/ defines the byte-code
+    and data of the associated smart-contract. The field /init_code_hash/
+    defines the hash of the  field /state_init.code/ that was used at  the
+    moment of the account  initialization, or at the moment of the account
+    freeze.
 
-    It is possible  to change both the code and  data for the account,
-    effectively changing the smart-contract logic on the fly. However,
-    the  value  /init_code_hash/  will  not change.   It  defines  the
-    address of a smart-contract within the current workchain.
+    In EverScale, it  is possible to change  the smart-contract's code
+    on  the  fly  using  the   SetCode  action.   However,  the  value
+    /init_code_hash/ stays  unaffected.
 
     The same holds for /AccountFrozen/. The value of /state_init_hash/
     defines the  hash of  the smart-contract /state_init.code/  at the
     moment of a freeze.
 
 **** Smart-Contract Storage (StateInit)
-    The byte-code and data of a contract are stored within the following
-    structure:
+    The byte-code and data of a contract are stored within a structure
+    called /StateInit/.  Its name may  seem quite confusing.  It could
+    have been named just State. The Init part comes from the fact that
+    this structure is  also used for the initialization  of an account
+    when it is uninitialized.
+
     #+begin_src rust
       pub struct StateInit {
           pub split_depth: Option<Number5>,
@@ -529,19 +535,19 @@
       i.e. Elector, Config,  Giver, etc.  There is a  special logic of
       executing messages destined to those contracts.
 
-    - /code/ and /data/ fields encodes the byte-code and the data of a
-      contract.
+    - /code/ and /data/ fields encodes the current byte-code and data of a
+      contract. Here, data denote values of contract's variables.
 
     - /library/ used to encode the  code libraries the contract  may refer to
       from its code. This mechanism is deprecated.
 
 ** Messages
    <<messages>>
-   Messages are the main mechanism of communication between non-blockchain
-   applications and smart-contracts.
+   In EverScale, smart-contracts communicate between each other and with
+   non-blockchain applications by means of an asynchronous message passing.
 
    Technically, a message is a data structure encoding one of the following:
-   - desired function call at a destination  smart-contract,  optionally including some  coins, attached to the call.
+   - desired function call at a destination  smart-contract,  optionally attaching some coins.
    - event log record to signal external observers about some significant state being reached
 
    We distinguish 3 types [fn:1] of messages:
@@ -558,7 +564,6 @@
          init_to_ref: Option<bool>,
      }
    #+end_src
-
 
    The last two  fields /body_to_ref/ and /init_to_ref/  are used only
    for serialization purpose, hence not considered in this document.
@@ -622,7 +627,7 @@
    - /bounced/ flag is set when the message itself was auto-generated as a result of an error.
      If the message with /bounced/ flag leads to an error itself, the next bounced message
      will not be generated.
-   - /value/ is measured in Nano EVERs ($10^{-9}$)
+   - /value/ is measured in Nano Evers ($10^{-9}$)
    - /created_lt/ is a monotonically increasing counter. Thanks to this field, each new generated message is unique, even if
      the message payload is the same.  The message creation logic time is also used to guarantee order of delivery.
      We do not dive deep into this question, because it is protocol-level details.
@@ -1045,9 +1050,9 @@
     in imperative fashion.
 
     *_Input:_*
+    - config - current blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
     - storage_info - the account storage info struct, has type [[storage_info][StorageInfo]].
     - is_masterchain - is the account inhabits Masterchain or not, has type Bool
-    - config - current blockchain configuration, has type [[blockchain_config][BlockchainConfig]]
     - now - current time, measured in Unix Epoch, has type UInt
 
     *_Output_*:
@@ -1055,7 +1060,7 @@
     - storage_info - updated account storage info, has type [[storage_info][StorageInfo]]
 
     #+begin_src python
-      def calc_storage_fee(storage_info, is_masterchain, config, now):
+      def calc_storage_fee(config, storage_info, is_masterchain, now):
           cells =  storage_info.used.cells
           bits = storage_info.used.bits
           last_paid = storage_info.last_paid
@@ -1677,7 +1682,11 @@
               return ExecutorError.TrExecutorError()
 
       # Execute Storage Phase
-      storage_ph_res = storage_phase(account, acc_balance, tr, is_masterchain)
+      storage_ph_res = storage_phase(account,
+                                     acc_balance,
+                                     tr,
+                                     is_masterchain,
+                                     config)
       descr.storage_ph = storage_ph_res.storage_ph
 
       # Why this is needed?
@@ -1848,7 +1857,11 @@
       tr.total_fee = tr.total_fee + in_fwd_fee
 
       # Execute Storage Phase
-      storage_ph_res = storage_phase(account, acc_balance, tr, is_masterchain)
+      storage_ph_res = storage_phase(account,
+                                     acc_balance,
+                                     tr,
+                                     is_masterchain,
+                                     config)
       descr.storage_ph = storage_ph_res.storage_ph
 
       if account.balance >= tr.total_fees:
@@ -1985,6 +1998,7 @@
    - /tr/ - forming transaction, has type [[transaction][Transaction]]
    - /msg_balance/ - message balance, has type /Grams/
    - /acc_balance/ - current balance of the account, has type /Grams/
+   - /config/ - main blockchain parameters, has type [[blockchain_config][BlockchainConfig]]
 
    *_Output:_*
 
@@ -2001,7 +2015,7 @@
 
 
    #+begin_src python
-     def storage_phase(account, tr, msg_balance, acc_balance):
+     def storage_phase(account, tr, msg_balance, acc_balance, config):
          # It is assumed that the current transaction must have a more
          # recent timestamp than the latest payment timestamp.
          # Otherwise, something is terribly wrong.
@@ -2011,8 +2025,8 @@
          if account == None:
              return Ok(TrStoragePhase())
 
-         fee, account.storage_info = calc_storage_fee(account.storage_info,
-                                                      is_masterchain, tr.now)
+         fee, account.storage_info = config.calc_storage_fee(account.storage_info,
+                                                             is_masterchain, tr.now)
          if account.due_payment > 0:
              fee = fee + account.due_payment
              account.due_payment = None
@@ -2084,6 +2098,10 @@
   - /acc_balance/ - account balance after the gas fee deduction
 
   #+begin_src python
+    def uninit_account(account):
+        if account.storage.state is AccountState.AccountActive:
+            account.storage.state = AccountState.AccountUninit
+
     def compute_phase(msg, account, acc_balance, msg_balance, state_libs, smc_info,
                       stack, is_masterchain):
         result_acc = account.clone()
@@ -2096,7 +2114,7 @@
                 result_acc = new_acc
                 result_acc.last_paid = smc_info.unix_time
                 account = result_acc
-                account.uninit_account() # ?
+                account.uninit_account()
 
         if acc_balance == 0:
             return Ok(TrComputePhase:skipped(ComputeSkipReason.NoGas), None, None)
@@ -2121,10 +2139,8 @@
         vm_phase.gas_limit = gas.gas_limit
 
         if result_acc.code == None:
-            vm_phase.exit_code = -13
             if is_external:
-                return ExecutorError.NoAcceptError(vm_phase.exit_code, None)
-            vm_phase.exit_arg = None
+                return ExecutorError.NoAcceptError()
             vm_phase.success = False
             vm_phase.gas_fees = gas_config.calc_gas_fee(0)
             if acc_balance < vm_phase.gas_fees:
@@ -2153,11 +2169,6 @@
 
         result = vm.execute()
 
-        if not (result is Ok):
-            vm_phase.exit_code = result.custom_code
-        else:
-            vm_phase.exit_code = result.exit_code
-
         vm_phase.success = vm.commited_state.is_committed
         # vm.gas may have been updated after the execution
         gas_vm = vm.gas
@@ -2171,7 +2182,7 @@
                 # The smart-contract has to explicitly accept the external message,
                 # otherwise it gets rejected. The acceptance of a message manifests
                 # itself in the credit field being equal to 0.
-                return ExecutorError.NoAcceptError(vm_phase.exit_code, raw_exit_arg)
+                return ExecutorError.NoAcceptError()
             vm_phase.gas_fees = 0
         else:
             gas_fees = gas_config.calc_gas_fee(used)
@@ -2260,8 +2271,13 @@
     #+end_src
 
 *** Compute New State Algorithm
+    <<compute_new_state>>
+
    The algorithm /compute_new_state/ computes the actual account state
-   by given account record, the balance and the message.
+   by given account record, the balance and the message. In particular,
+   this algorithm is used to initialize uninitialized accounts with
+   code and data borrowed from an external message with non-empty
+   /state_init/ field.
 
    *_Input_:*
    - /account/ - account structure, has type [[account][Account]]
@@ -2270,9 +2286,8 @@
 
    *_Output_:*
 
-   On success, returns *None*
-
-   On failure, returns one of the /ComputeSkipReason/ codes
+   - On success, returns *None*.
+   - On failure, returns one of the /ComputeSkipReason/ codes.
 
    *_Modifies_:*
    - /account/
@@ -2390,25 +2405,38 @@
 
 *** Account From Message Algorithm
 
-    The algorithm creates new account by using data from the message.
+    The algorithm creates new account  by using data from the internal
+    message. External messages are rejected. Creation of a new account
+    based  on   an  external   message  is  located   elsewhere.   See
+    [[compute_new_state][compute_new_state]] algorithm.
+
+    *_Input_*
+    - msg: incoming message being processed, has type [[messages][Message]]
+    - msg_remaining_balance: the current amount of coins left on the message balance, has type /Uint/
+
+    *_Output_*
+    - Either returns a new [[account][Account]] object, or None. Both results are considered successful.
+
+    *_Modifies_*:
+    None
 
     #+begin_src python
-      def account_from_message(msg, msg_remaining_balance, check_address):
+      def account_from_message(msg, msg_remaining_balance):
           if not (msg.header is IntMsgInfo):
               return None
           if msg_remaining_balance == 0:
               return None
 
           header = msg.header
-
           init = msg.state_init
+
           if init != None and init.code != None and hash(init) == header.dst.address:
               return Account.active_by_init_code_hash(hdr.dst, msg_remaining_balance,
                                                       0, init)
           if header.bounce:
               return None
           else:
-              return Some(Account.uninit(hdr.dst, 0, 0, msg_remaining_balance))
+              return Account.uninit(hdr.dst, 0, 0, msg_remaining_balance)
 
     #+end_src
 
@@ -2445,6 +2473,8 @@
    - /msg_remaining_balance/
 
    #+begin_src python
+     MAX_ACTIONS = 255
+
      def action_phase(tr, account, original_acc_balance, acc_balance,
                       msg_remaining_balance, compute_phase_fees, actions, new_data):
 
@@ -2556,8 +2586,8 @@
     To specify the validity condition, we will define the opposite, i.e. when
     the action phase is considered /invalid/.
 
-    - The number of actions in the action list is greater than /MAX_ACTIONS/.
-    - Any SendMsg action processing finished with an error
+    - The number of actions in the action list is greater than /MAX_ACTIONS/
+    - Any /SendMsg/ action processing finished with an error
     - The unknown action type was found during the processing
 
     In all other cases, the action phase is considered /valid/.
@@ -2566,7 +2596,7 @@
 *** SendMsg Action Handler
     <<sendmsg_handler>>
 
-    The SendMsg action handler  is responsible for generating messages
+    The /SendMsg/ action handler  is responsible for generating messages
     to be sent.  It may fail due to several reasons. In this case, the
     action phase get stopped,  unless the /SENDMSG_IGNORE_ERROR/ flag is
     set.
@@ -2600,7 +2630,17 @@
     - msg_balance
     - account_deleted
 
+    <<get_fwd_prices>>
     #+begin_src python
+      MAX_MSG_BITS = 2**21  # 2 Mb
+      MAX_MSG_CELLS = 2**13
+
+      def get_fwd_prices(config, is_masterchain):
+          if is_masterchain:
+              return config.fwd_prices_mc
+          else:
+              return config.fwd_prices_wc
+
       def outmsg_action_handler(phase, mode, msg, acc_balance, msg_balance,
                                 compute_phase_fees, config, my_addr, reserved_value,
                                 account_deleted):
@@ -2765,12 +2805,15 @@
 
    On success, returns Ok(/TrBouncePhase/, /bounce_message/), such that:
    - /TrBouncePhase/ is a Bounce Phase Descriptor
-   - /bounce_message/ is a bounce message to included into the out_msgs queue
+   - /bounce_message/ is a bounce message to be included into the out_msgs queue
 
    On error, returns /ExecutorError.TrExecutorError/
 
    *_Modifies_:*
    - /tr/ - adds the bounce message delivery fee to the total
+
+   *_NOTE_:*
+   - Function /get_fwd_prices()/ was defined [[get_fwd_prices][here]].
 
    #+begin_src python
      def bounce_phase(remaining_msg_balance, acc_balance,
@@ -2780,8 +2823,7 @@
              return ExecutorError.TrExecutorError()
 
          header2 = header.clone()
-         msg_src = header.dst
-         msg_dst = header.src
+         header2.src, header2.dst = header.dst, header.src
          storage = StorageUsedShort()
          fwd_prices = config.get_fwd_prices(msg.is_masterchain)
          fwd_full_fees = fwd_prices.fwd_fee(Cell())
@@ -2804,7 +2846,7 @@
          bounce_msg = Message.with_header(header2)
          if config.has_capability(GlobalCapabilities.CapBounceMsgBody):
              body = msg.body.clone()
-             body.shrink_data(0..256)
+             body.shrink_data(0..256) # leave only 256 bits of the original body
              bounce_msg.body = body
 
          tr.total_fees += fwd_mine_fees
@@ -2831,7 +2873,7 @@
 
     1. Incorrect storage, delivery or gas fees calculation logic
     2. Incorrect message value processing logic
-    3. Incorrect /SendMsg/, /ReserveCoins/ tokens processing logic
+    3. Incorrect /SendMsg/, /ReserveCoins/ actions processing logic
 
 *** Behavioral Risks
 
